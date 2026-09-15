@@ -1,0 +1,89 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="FdLvqlF9kwrmRan0gtzR">
+    <mxGraphModel dx="2171" dy="1454" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="titre" parent="1" style="text;align=center;verticalAlign=middle;fontStyle=1;fontSize=16;html=1;" value="Modele Conceptuel des Donnees (MCD) - Systeme FoncierAI" vertex="1">
+          <mxGeometry height="30" width="1300" x="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_user" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;fillColor=#ffffff;strokeColor=#000000;fontSize=13;" value="UTILISATEUR" vertex="1">
+          <mxGeometry height="146" width="240" x="40" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_user_attrs" parent="ent_user" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="Id&#xa;nom : String&#xa;email : String&#xa;mot_de_passe : String&#xa;role : Enum&#xa;created_at : DateTime" vertex="1">
+          <mxGeometry height="116" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_parc" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;fillColor=#ffffff;strokeColor=#000000;fontSize=13;" value="PARCELLE" vertex="1">
+          <mxGeometry height="308" width="260" x="580" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_parc_attrs" parent="ent_parc" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="Id&#xa;su : String&#xa;superficie_ha : int&#xa;superficie_ares : int&#xa;superficie_ca : int&#xa;superficie_pourcent : int&#xa;zone : String&#xa;usage : Enum&#xa;nature : String&#xa;prix_reel : Decimal&#xa;prix_estime : Decimal&#xa;statut : Enum&#xa;titre_foncier : String&#xa;hash_blockchain : String&#xa;created_at : DateTime" vertex="1">
+          <mxGeometry height="278" width="260" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_trans" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;fillColor=#ffffff;strokeColor=#000000;fontSize=13;" value="TRANSACTION" vertex="1">
+          <mxGeometry height="128" width="240" x="1210" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_trans_attrs" parent="ent_trans" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="Id&#xa;montant : Decimal&#xa;statut : Enum&#xa;hash_blockchain : String&#xa;created_at : DateTime" vertex="1">
+          <mxGeometry height="98" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_est" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;fillColor=#ffffff;strokeColor=#000000;fontSize=13;" value="ESTIMATION" vertex="1">
+          <mxGeometry height="200" width="260" x="580" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_est_attrs" parent="ent_est" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="Id&#xa;superficie : float&#xa;zone : String&#xa;infrastructure : boolean&#xa;prix_lr : Decimal&#xa;prix_rf : Decimal&#xa;prix_moyen : Decimal&#xa;est_fraude : boolean&#xa;created_at : DateTime" vertex="1">
+          <mxGeometry height="170" width="260" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_possede" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;fontStyle=1;" value="POSSEDE" vertex="1">
+          <mxGeometry height="50" width="140" x="380" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_concerne" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;fontStyle=1;" value="CONCERNE" vertex="1">
+          <mxGeometry height="50" width="140" x="880" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_achete" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;fontStyle=1;" value="REALISE" vertex="1">
+          <mxGeometry height="50" width="140" x="450" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_genere" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;fontStyle=1;" value="EFFECTUE" vertex="1">
+          <mxGeometry height="50" width="140" x="290" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="l1" edge="1" parent="1" source="ent_user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="assoc_possede" value="(0,N)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l2" edge="1" parent="1" source="assoc_possede" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="ent_parc" value="(1,1)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l3" edge="1" parent="1" source="ent_parc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=1;exitY=0.4;entryX=0;entryY=0.5;" target="assoc_concerne" value="(1,N)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l4" edge="1" parent="1" source="assoc_concerne" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.4;" target="ent_trans" value="(1,1)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l5" edge="1" parent="1" source="ent_user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=0.5;exitY=1;entryX=0;entryY=0.3;" target="assoc_achete" value="(0,N)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l6" edge="1" parent="1" source="assoc_achete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=1;exitY=0.3;entryX=0.3;entryY=1;" target="ent_trans" value="(1,1)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l9" edge="1" parent="1" source="ent_user_attrs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=1;exitY=1;entryX=0;entryY=0.5;exitDx=0;exitDy=0;" target="assoc_genere" value="(0,N)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l10" edge="1" parent="1" source="assoc_genere" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#000000;exitX=0.5;exitY=1;entryX=0.003;entryY=0.848;entryDx=0;entryDy=0;entryPerimeter=0;" target="ent_est_attrs" value="(1,1)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="0.6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

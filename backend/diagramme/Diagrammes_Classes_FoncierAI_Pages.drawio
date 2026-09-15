@@ -1,0 +1,235 @@
+<mxfile host="Electron" agent="Claude" pages="7">
+  <diagram name="0 - Vue d&#39;ensemble" id="overview">
+    <mxGraphModel dx="1382" dy="2025" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="u_class" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Utilisateur" vertex="1">
+          <mxGeometry height="180" width="240" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="u_attrs" parent="u_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="- id : int&#xa;- nom : String&#xa;- email : String&#xa;- mot_de_passe : String&#xa;- role : Enum {admin, acheteur, vendeur}&#xa;- created_at : DateTime" vertex="1">
+          <mxGeometry height="106" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="u_methods" parent="u_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="+ authentifier() : Token&#xa;+ getToken() : Token" vertex="1">
+          <mxGeometry height="44" width="240" y="136" as="geometry" />
+        </mxCell>
+        <mxCell id="p_class" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#d5e8d4;strokeColor=#82b366;" value="Parcelle" vertex="1">
+          <mxGeometry height="290" width="260" x="380" y="-240" as="geometry" />
+        </mxCell>
+        <mxCell id="p_attrs" parent="p_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="- id : int&#xa;- su : String&#xa;- superficie_ha : int&#xa;- superficie_ares : int&#xa;- superficie_ca : int&#xa;- superficie_pourcent : int&#xa;- zone : String&#xa;- usage : Enum {residentiel, commercial, autre}&#xa;- nature : String&#xa;- prix_reel : Decimal&#xa;- prix_estime : Decimal&#xa;- statut : Enum {disponible, vendue, en_negociation}&#xa;- titre_foncier : String&#xa;- hash_blockchain : String&#xa;- created_at : DateTime" vertex="1">
+          <mxGeometry height="250" width="260" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p_methods" parent="p_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="10" width="260" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="t_class" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Transaction" vertex="1">
+          <mxGeometry height="140" width="240" x="760" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t_attrs" parent="t_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="- id : int&#xa;- montant : Decimal&#xa;- statut : Enum {en_cours, terminee, annulee}&#xa;- hash_blockchain : String&#xa;- created_at : DateTime" vertex="1">
+          <mxGeometry height="100" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="t_methods" parent="t_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="10" width="240" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="s_class" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#f8cecc;strokeColor=#b85450;" value="SmartContract" vertex="1">
+          <mxGeometry height="110" width="240" x="60" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="s_attrs" parent="s_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="- adresse : String&#xa;- abi : String" vertex="1">
+          <mxGeometry height="42" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_methods" parent="s_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="+ enregistrer(parcelle_su, acheteur, vendeur, montant) : String" vertex="1">
+          <mxGeometry height="38" width="240" y="72" as="geometry" />
+        </mxCell>
+        <mxCell id="m_class" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#e1d5e7;strokeColor=#9673a6;" value="ModuleIA" vertex="1">
+          <mxGeometry height="190" width="260" x="390" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="m_attrs" parent="m_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="- modele_lr : Object&#xa;- modele_rf : Object&#xa;- modele_fraude : Object&#xa;- label_encoder : Object" vertex="1">
+          <mxGeometry height="72" width="260" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="m_methods" parent="m_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="+ entrainer()&#xa;+ estimerPrix(superficie, zone, infrastructure) : Dict&#xa;+ detecterFraude(superficie, zone, infrastructure) : Dict" vertex="1">
+          <mxGeometry height="88" width="260" y="102" as="geometry" />
+        </mxCell>
+        <mxCell id="e_class" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#fff2cc;strokeColor=#d6b656;" value="Estimation" vertex="1">
+          <mxGeometry height="210" width="240" x="740" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="e_attrs" parent="e_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="- id : int&#xa;- superficie : float&#xa;- zone : String&#xa;- infrastructure : boolean&#xa;- prix_lr : Decimal&#xa;- prix_rf : Decimal&#xa;- prix_moyen : Decimal&#xa;- est_fraude : boolean&#xa;- created_at : DateTime" vertex="1">
+          <mxGeometry height="170" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e_methods" parent="e_class" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;spacingBottom=4;overflow=hidden;fontSize=11;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="10" width="240" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_u_p" edge="1" parent="1" source="u_class" style="endArrow=none;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="p_class" value="possède">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="330" y="90" as="sourcePoint" />
+            <mxPoint x="380" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_u_p_src" connectable="0" parent="edge_u_p" style="edgeLabel;html=1;align=left;verticalAlign=bottom;fontSize=10;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_u_p_tgt" connectable="0" parent="edge_u_p" style="edgeLabel;html=1;align=right;verticalAlign=bottom;fontSize=10;" value="0..*" vertex="1">
+          <mxGeometry relative="1" x="0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_u_t_ach" edge="1" parent="1" source="u_class" style="endArrow=none;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.65;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="t_attrs" value="réalise">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points" />
+            <mxPoint x="650" y="150" as="sourcePoint" />
+            <mxPoint x="740" y="60" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_u_t_ach_src" connectable="0" parent="edge_u_t_ach" style="edgeLabel;html=1;align=left;verticalAlign=bottom;fontSize=10;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_u_t_ach_tgt" connectable="0" parent="edge_u_t_ach" style="edgeLabel;html=1;align=right;verticalAlign=bottom;fontSize=10;" value="0..*&amp;nbsp;" vertex="1">
+          <mxGeometry relative="1" x="0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_p_t" edge="1" parent="1" source="p_class" style="endArrow=none;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="t_class" value="concerne">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="650" y="80" as="sourcePoint" />
+            <mxPoint x="740" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_p_t_src" connectable="0" parent="edge_p_t" style="edgeLabel;html=1;align=left;verticalAlign=bottom;fontSize=10;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_p_t_tgt" connectable="0" parent="edge_p_t" style="edgeLabel;html=1;align=right;verticalAlign=bottom;fontSize=10;" value="0..*" vertex="1">
+          <mxGeometry relative="1" x="0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_p_e" edge="1" parent="1" source="u_methods" style="endArrow=none;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" target="e_class" value="effectue">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="600" y="340" as="sourcePoint" />
+            <mxPoint x="820" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_p_e_src" connectable="0" parent="edge_p_e" style="edgeLabel;html=1;align=left;verticalAlign=bottom;fontSize=10;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_p_e_tgt" connectable="0" parent="edge_p_e" style="edgeLabel;html=1;align=right;verticalAlign=bottom;fontSize=10;" value="0..*" vertex="1">
+          <mxGeometry relative="1" x="0.85" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nNqkDOG_fy1ERfXlxYIg-1" edge="1" parent="1" source="s_class" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=1;entryDx=0;entryDy=0;exitX=1.002;exitY=0.147;exitDx=0;exitDy=0;exitPerimeter=0;" target="t_attrs" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="330" y="390" as="sourcePoint" />
+            <mxPoint x="380" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nNqkDOG_fy1ERfXlxYIg-2" edge="1" parent="1" source="m_methods" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="e_attrs" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="660" y="690" as="sourcePoint" />
+            <mxPoint x="710" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="1 - Utilisateur" id="page_utilisateur">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c1" value="Utilisateur" style="swimlane;fontStyle=1;fontSize=14;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=34;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="220" y="120" width="300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="c1a" value="- id : int&#xa;- nom : String&#xa;- email : String&#xa;- mot_de_passe : String&#xa;- role : Enum {admin, acheteur, vendeur}&#xa;- created_at : DateTime" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c1">
+          <mxGeometry y="34" width="300" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c1b" value="+ authentifier() : Token&#xa;+ getToken() : Token" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c1">
+          <mxGeometry y="164" width="300" height="56" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="2 - Parcelle" id="page_parcelle">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c2" value="Parcelle" style="swimlane;fontStyle=1;fontSize=14;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=34;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="60" width="340" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="c2a" value="- id : int&#xa;- su : String&#xa;- superficie_ha : int&#xa;- superficie_ares : int&#xa;- superficie_ca : int&#xa;- superficie_pourcent : int&#xa;- zone : String&#xa;- usage : Enum {residentiel, commercial, autre}&#xa;- nature : String&#xa;- prix_reel : Decimal&#xa;- prix_estime : Decimal&#xa;- statut : Enum {disponible, vendue, en_negociation}&#xa;- titre_foncier : String&#xa;- hash_blockchain : String&#xa;- created_at : DateTime" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c2">
+          <mxGeometry y="34" width="340" height="336" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="3 - Transaction" id="page_transaction">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c3" value="Transaction" style="swimlane;fontStyle=1;fontSize=14;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=34;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="220" y="140" width="300" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="c3a" value="- id : int&#xa;- montant : Decimal&#xa;- statut : Enum {en_cours, terminee, annulee}&#xa;- hash_blockchain : String&#xa;- created_at : DateTime" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c3">
+          <mxGeometry y="34" width="300" height="166" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="4 - Estimation" id="page_estimation">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c4" value="Estimation" style="swimlane;fontStyle=1;fontSize=14;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=34;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="220" y="100" width="300" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="c4a" value="- id : int&#xa;- superficie : float&#xa;- zone : String&#xa;- infrastructure : boolean&#xa;- prix_lr : Decimal&#xa;- prix_rf : Decimal&#xa;- prix_moyen : Decimal&#xa;- est_fraude : boolean&#xa;- created_at : DateTime" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c4">
+          <mxGeometry y="34" width="300" height="256" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="5 - ModuleIA" id="page_moduleia">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c5" value="ModuleIA" style="swimlane;fontStyle=1;fontSize=14;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=34;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="200" y="100" width="340" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="c5a" value="- modele_lr : Object&#xa;- modele_rf : Object&#xa;- modele_fraude : Object&#xa;- label_encoder : Object" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c5">
+          <mxGeometry y="34" width="340" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="c5b" value="+ entrainer()&#xa;+ estimerPrix(superficie, zone, infrastructure) : Dict&#xa;+ detecterFraude(superficie, zone, infrastructure) : Dict" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c5">
+          <mxGeometry y="134" width="340" height="136" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="6 - SmartContract" id="page_smartcontract">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c6" value="SmartContract" style="swimlane;fontStyle=1;fontSize=14;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=34;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;swimlaneFillColor=#ffffff;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="220" y="140" width="320" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="c6a" value="- adresse : String&#xa;- abi : String" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c6">
+          <mxGeometry y="34" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c6b" value="+ enregistrer(parcelle_su, acheteur, vendeur, montant) : String" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;spacingBottom=6;overflow=hidden;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="c6">
+          <mxGeometry y="104" width="320" height="76" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

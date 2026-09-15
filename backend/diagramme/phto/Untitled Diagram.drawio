@@ -1,0 +1,147 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="M51aAstVV01PwO632HoE">
+    <mxGraphModel dx="2750" dy="1273" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="titre" parent="1" style="text;align=center;verticalAlign=middle;fontStyle=1;fontSize=22;html=1;" value="Diagramme de séquence DS01 — Authentification JWT" vertex="1">
+          <mxGeometry height="35" width="920" x="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_user_icon" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=1;fontSize=16;" value="Utilisateur" vertex="1">
+          <mxGeometry height="55" width="65" x="88" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_user_line" edge="1" parent="1" style="html=1;endArrow=none;dashed=1;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="120" y="105" as="sourcePoint" />
+            <mxPoint x="120" y="860" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_front_icon" parent="1" style="shape=umlBoundary;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fontStyle=1;fontSize=16;" value=": Frontend (Login.jsx)" vertex="1">
+          <mxGeometry height="55" width="65" x="328" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_front_line" edge="1" parent="1" style="html=1;endArrow=none;dashed=1;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="105" as="sourcePoint" />
+            <mxPoint x="360" y="860" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_api_icon" parent="1" style="shape=umlControl;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fontStyle=1;fontSize=16;" value=": API Django (/api/connexion/)" vertex="1">
+          <mxGeometry height="55" width="65" x="568" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_api_line" edge="1" parent="1" style="html=1;endArrow=none;dashed=1;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="600" y="105" as="sourcePoint" />
+            <mxPoint x="600" y="860" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_bdd_icon" parent="1" style="shape=umlEntity;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fontStyle=1;fontSize=16;" value=": Base de données (MySQL)" vertex="1">
+          <mxGeometry height="55" width="65" x="848" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_bdd_line" edge="1" parent="1" style="html=1;endArrow=none;dashed=1;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="105" as="sourcePoint" />
+            <mxPoint x="880" y="860" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_front" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="650" width="10" x="355" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="act_api" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="350" width="10" x="595" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="act_bdd" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="60" width="10" x="875" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="m1" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="1: accède à la page de connexion (/login)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="120" y="130" as="sourcePoint" />
+            <mxPoint x="355" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" target="E4wur6QgMEN7IJeFfrrw-1" value="2: affiche le formulaire de connexion (champs email, mot de passe)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="355" y="180" as="sourcePoint" />
+            <mxPoint x="120" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="3: saisit email + mot de passe, clique « Se connecter »">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="120" y="230" as="sourcePoint" />
+            <mxPoint x="355" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m4" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="4: POST /api/connexion/ { email, mot_de_passe }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="365" y="280" as="sourcePoint" />
+            <mxPoint x="595" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m5" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="5: SELECT * FROM utilisateurs WHERE email = ?">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="605" y="330" as="sourcePoint" />
+            <mxPoint x="875" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m6" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;endSize=12;dashed=1;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="6: retourne l&#39;utilisateur trouvé en base">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="875" y="380" as="sourcePoint" />
+            <mxPoint x="605" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m7" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=left;verticalAlign=bottom;labelBackgroundColor=#ffffff;rounded=0;" value="7: check_password(mot_de_passe)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="430" />
+              <mxPoint x="680" y="465" />
+            </Array>
+            <mxPoint x="605" y="430" as="sourcePoint" />
+            <mxPoint x="605" y="465" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m8" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=left;verticalAlign=bottom;labelBackgroundColor=#ffffff;rounded=0;" value="8: RefreshToken.for_user(utilisateur) ; refresh[&#39;role&#39;] = utilisateur.role">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="530" />
+              <mxPoint x="680" y="565" />
+            </Array>
+            <mxPoint x="605" y="530" as="sourcePoint" />
+            <mxPoint x="605" y="565" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m9" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;endSize=12;dashed=1;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="9: 200 OK { token, role, nom }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="595" y="610" as="sourcePoint" />
+            <mxPoint x="365" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m10" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=left;verticalAlign=bottom;labelBackgroundColor=#ffffff;rounded=0;" value="10: localStorage.setItem(&#39;token&#39;/&#39;role&#39;/&#39;nom&#39;)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="660" />
+              <mxPoint x="440" y="695" />
+            </Array>
+            <mxPoint x="365" y="660" as="sourcePoint" />
+            <mxPoint x="365" y="695" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m11" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;endSize=12;strokeColor=#000000;fontSize=16;fontStyle=1;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="11: redirige et affiche la page correspondant au rôle (Dashboard / Parcelles)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <mxPoint x="355" y="750" as="sourcePoint" />
+            <mxPoint x="120" y="750" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E4wur6QgMEN7IJeFfrrw-1" parent="1" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" value="" vertex="1">
+          <mxGeometry height="650" width="10" x="115" y="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
