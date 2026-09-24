@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Estimation
 
+
 class EstimationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estimation

@@ -21,6 +21,7 @@ export default function Dashboard() {
           <button onClick={() => navigate("/estimation")} className="hover:underline">Estimation IA</button>
           <button onClick={() => navigate("/utilisateurs")} className="hover:underline">Utilisateurs</button>
           <button onClick={() => navigate("/")} className="bg-red-500 px-3 py-1 rounded-lg">Déconnexion</button>
+          <button onClick={() => navigate("/transactions")} className="hover:underline">Transactions</button>
         </div>
       </nav>
 

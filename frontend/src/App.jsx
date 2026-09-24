@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard"
 import Parcelles from "./pages/Parcelles"
 import Estimation from "./pages/Estimation"
 import Utilisateurs from './pages/Utilisateurs'
+import Transactions from "./pages/Transactions"
 
 export default function App() {
   return (
@@ -13,10 +14,11 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/parcelles" element={<Parcelles />} />
         <Route path="/estimation" element={<Estimation />} />
-        
         <Route path="/utilisateurs" element={<Utilisateurs />} />
+        <Route path="/transactions" element={<Transactions />} />
       </Routes>
     </BrowserRouter>
   )
 }
+
 
