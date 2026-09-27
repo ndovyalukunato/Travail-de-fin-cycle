@@ -1,0 +1,10 @@
+Django>=4.2
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+mysqlclient
+python-dotenv
+web3
+scikit-learn==1.8.0
+joblib
+pandas

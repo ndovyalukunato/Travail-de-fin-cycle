@@ -1,1 +1,53 @@
+/* Importe Tailwind CSS (toutes les classes utilitaires : bg-..., text-..., p-...) */
 @import "tailwindcss";
+
+/* Palette institutionnelle inspirée du drapeau de la RDC */
+@theme {
+  /* Nuances de bleu marine (de la plus foncée à la plus claire) : bg-marine-900, text-marine-700... */
+  --color-marine-950: #06173a;
+  --color-marine-900: #0a2554;
+  --color-marine-800: #0e3372;
+  --color-marine-700: #134595;
+  --color-marine-600: #1a58bd;
+  --color-marine-500: #2f74dc;
+  --color-marine-100: #dde8fa;
+  --color-marine-50: #f0f5fd;
+
+  /* Couleurs du drapeau de la RDC */
+  --color-rdc-bleu: #007fff;
+  --color-rdc-jaune: #f7d618;
+  --color-rdc-rouge: #ce1021;
+
+  /* Police de caractères de l'application (avec polices de secours) */
+  --font-sans: "Segoe UI", "Inter", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Styles de base appliqués à toute la page */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased; /* texte plus net */
+  }
+  body {
+    @apply bg-slate-100 text-slate-800; /* fond gris clair, texte gris foncé */
+  }
+  /* Focus clavier toujours visible (ergonomie / accessibilité) */
+  :focus-visible {
+    outline: 2px solid var(--color-marine-500);
+    outline-offset: 2px;
+  }
+}
+
+/* Classes personnalisées réutilisées dans les pages */
+@layer components {
+  /* Style commun des champs de formulaire (input, select) */
+  .champ {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800
+      placeholder:text-slate-400 transition
+      focus:border-marine-500 focus:ring-2 focus:ring-marine-100 focus:outline-none
+      disabled:bg-slate-100 disabled:text-slate-500;
+  }
+  /* Bande tricolore bleu / jaune / rouge (haut de la barre latérale et de la page de connexion) */
+  .bande-rdc {
+    background: linear-gradient(90deg, var(--color-rdc-bleu) 0 60%, var(--color-rdc-jaune) 60% 75%, var(--color-rdc-rouge) 75% 100%);
+  }
+}

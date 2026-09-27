@@ -9,11 +9,15 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+# ==========================================================
+# CONFIGURATION GÉNÉRALE DU BACKEND DJANGO
+# ==========================================================
 
-from pathlib import Path
-from datetime import timedelta
+from pathlib import Path  # manipulation des chemins de fichiers
+from datetime import timedelta  # durées (utilisées pour la validité des tokens JWT)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Dossier racine du backend (celui qui contient manage.py)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -21,53 +25,61 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# Clé secrète : sert notamment à signer les tokens JWT (à garder confidentielle en production)
 SECRET_KEY = 'django-insecure-3unu(arfc@s!lxdb!she_r3qu74qb6h33x#k=^=)16dl#r*lf)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Mode débogage : affiche les erreurs détaillées (à désactiver en production)
 DEBUG = True
 
+# Noms de domaine autorisés à servir l'application (vide = localhost uniquement en mode DEBUG)
 ALLOWED_HOSTS = []
 
 
 # Application definition
 
+# Applications activées dans le projet
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    # Applications fournies par Django
+    'django.contrib.admin',  # interface d'administration
+    'django.contrib.auth',  # système d'authentification de base
+    'django.contrib.contenttypes',  # gestion des types de modèles
+    'django.contrib.sessions',  # sessions utilisateur
+    'django.contrib.messages',  # messages temporaires
+    'django.contrib.staticfiles',  # fichiers statiques (CSS, JS, images)
     # packages
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'corsheaders',
+    'rest_framework',  # Django REST Framework : création de l'API
+    'rest_framework_simplejwt',  # authentification par tokens JWT
+    'corsheaders',  # autorise le frontend React (autre port) à appeler l'API
     # nos apps
-    'utilisateurs',
-    'parcelles',
-    'transactions',
-    'estimations',
+    'utilisateurs',  # comptes et rôles
+    'parcelles',  # terrains
+    'transactions',  # ventes
+    'estimations',  # historique des estimations IA
 ]
 
+# Couches traversées par chaque requête, dans l'ordre
 MIDDLEWARE = [
     # cors_Autoriser react a communiqué avec django
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # doit être en premier pour ajouter les en-têtes CORS
+    'django.middleware.security.SecurityMiddleware',  # en-têtes de sécurité HTTP
+    'django.contrib.sessions.middleware.SessionMiddleware',  # gestion des sessions
+    'django.middleware.common.CommonMiddleware',  # traitements communs (URL, etc.)
+    'django.middleware.csrf.CsrfViewMiddleware',  # protection contre les attaques CSRF
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # associe l'utilisateur à la requête
+    'django.contrib.messages.middleware.MessageMiddleware',  # messages temporaires
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # protection contre le clickjacking
 ]
 
+# Fichier qui contient la liste des routes (URL) de l'API
 ROOT_URLCONF = 'foncierIA.urls'
 
+# Configuration des gabarits HTML (utilisés seulement par l'interface d'administration Django)
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',  # moteur de gabarits Django
+        'DIRS': [],  # pas de dossier de gabarits personnalisé
+        'APP_DIRS': True,  # cherche les gabarits dans chaque application
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -78,20 +90,22 @@ TEMPLATES = [
     },
 ]
 
+# Application WSGI utilisée pour le déploiement (voir wsgi.py)
 WSGI_APPLICATION = 'foncierIA.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Connexion à la base de données MySQL (XAMPP/WAMP)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.mysql',  # type de base : MySQL
         'NAME': 'foncierAi',       # Le nom de ta base de données
-        'USER': 'root',
+        'USER': 'root',  # utilisateur MySQL
         'PASSWORD': '',            # Ton mot de passe MySQL
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'HOST': 'localhost',  # serveur MySQL sur la même machine
+        'PORT': '3306',  # port par défaut de MySQL
     }
 }
 
@@ -99,17 +113,22 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
+# Règles de robustesse des mots de passe (pour le système d'authentification Django)
 AUTH_PASSWORD_VALIDATORS = [
     {
+        # Refuse un mot de passe trop proche du nom ou de l'email
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
+        # Impose une longueur minimale
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
+        # Refuse les mots de passe trop courants
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
+        # Refuse les mots de passe uniquement numériques
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
@@ -118,19 +137,19 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-us'  # langue par défaut de Django
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'UTC'  # fuseau horaire utilisé pour les dates
 
-USE_I18N = True
+USE_I18N = True  # active la traduction
 
-USE_TZ = True
+USE_TZ = True  # enregistre les dates avec leur fuseau horaire
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = 'static/'  # préfixe des URL des fichiers statiques
 
 # Autoriser les requêtes de n'importe quelle origine CORS (React frontend <-> Django backend)
 CORS_ALLOW_ALL_ORIGINS = True
@@ -144,16 +163,20 @@ CORS_ALLOW_ALL_ORIGINS = True
 # l'utilisateur dans la table `utilisateurs`, et non dans la table Django
 # par défaut (auth_user, qui reste vide dans ce projet).
 
+# Réglages de Django REST Framework, appliqués à toutes les vues de l'API
 REST_FRAMEWORK = {
+    # Comment identifier l'utilisateur : par le token JWT envoyé dans l'en-tête Authorization
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'utilisateurs.authentification.UtilisateurJWTAuthentication',
     ),
+    # Par défaut, il faut être connecté pour accéder à l'API
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
 
+# Durée de validité des tokens JWT
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),  # token d'accès : 2 heures
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # token de renouvellement : 1 jour
 }
