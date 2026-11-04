@@ -1,6 +1,15 @@
 from rest_framework import serializers  # conversion objets Python <-> JSON
-from .models import Parcelle  # modèle à convertir
+from .models import Parcelle, DocumentParcelle  # modèles à convertir
 from ia.modele import analyser_parcelle, superficie_en_m2  # fonctions du module d'intelligence artificielle
+
+
+# Transforme une pièce justificative en JSON (le fichier lui-même se télécharge
+# par /api/documents/<id>/fichier/, réservé à l'admin et au propriétaire)
+class DocumentParcelleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentParcelle
+        fields = ['id', 'parcelle', 'type', 'nom', 'created_at']
+        read_only_fields = fields
 
 
 # Transforme une Parcelle en JSON pour l'API (et valide les données reçues)
@@ -10,6 +19,8 @@ class ParcelleSerializer(serializers.ModelSerializer):
     # Champs calculés par les méthodes get_superficie_m2 et get_analyse_ia ci-dessous
     superficie_m2 = serializers.SerializerMethodField()
     analyse_ia = serializers.SerializerMethodField()
+    # Nombre de pièces justificatives déposées
+    nb_documents = serializers.IntegerField(source='documents.count', read_only=True)
 
     class Meta:
         model = Parcelle  # modèle concerné
@@ -33,10 +44,15 @@ class ParcelleSerializer(serializers.ModelSerializer):
             'proprietaire',
             'proprietaire_nom',
             'analyse_ia',
+            'verification',
+            'motif_rejet',
+            'nb_documents',
             'created_at',
         ]
         # Champs que le client ne peut pas modifier (calculés ou attribués par le serveur)
-        read_only_fields = ['id', 'hash_blockchain', 'proprietaire', 'created_at', 'prix_estime']
+        # "verification" ne change que par l'action /verifier/ réservée à l'admin
+        read_only_fields = ['id', 'hash_blockchain', 'proprietaire', 'created_at', 'prix_estime',
+                            'verification', 'motif_rejet']
 
     # Validation du champ "zone" avant l'enregistrement
     def validate_zone(self, value):

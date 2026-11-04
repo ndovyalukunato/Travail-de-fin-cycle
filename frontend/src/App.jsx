@@ -8,6 +8,7 @@ import Estimation from "./pages/Estimation"
 import Utilisateurs from "./pages/Utilisateurs"
 import Transactions from "./pages/Transactions"
 import Historique from "./pages/Historique"
+import Messages from "./pages/Messages"
 
 // Redirige vers la connexion si pas de token, ou si le rôle n'est pas autorisé
 function Protegee({ roles, children }) {
@@ -34,6 +35,8 @@ export default function App() {
         <Route path="/utilisateurs" element={<Protegee roles={["admin"]}><Utilisateurs /></Protegee>} />
         <Route path="/transactions" element={<Protegee><Transactions /></Protegee>} />
         <Route path="/historique" element={<Protegee><Historique /></Protegee>} />
+        {/* Discussions acheteur <-> vendeur */}
+        <Route path="/messages" element={<Protegee><Messages /></Protegee>} />
         {/* Toute autre adresse renvoie vers la connexion */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

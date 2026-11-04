@@ -2,9 +2,10 @@ import { useEffect, useState } from "react" // hooks React : effets et état loc
 import { NavLink, useNavigate } from "react-router-dom" // liens de navigation et redirection
 // Icônes de la bibliothèque lucide-react
 import {
-  LayoutDashboard, LandPlot, BrainCircuit, ArrowLeftRight, History, Users, LogOut, Menu, X,
+  LayoutDashboard, LandPlot, BrainCircuit, ArrowLeftRight, History, Users, LogOut, Menu, X, MessagesSquare,
 } from "lucide-react"
 import armoiries from "../assets/armoiries.png" // armoiries de la RDC (fond transparent)
+import api from "../api" // client HTTP (nombre de messages non lus)
 
 // Libellés affichés pour chaque rôle
 const ROLES = { admin: "Administrateur", vendeur: "Vendeur", acheteur: "Acheteur" }
@@ -22,12 +23,23 @@ export default function Layout({ titre, children }) {
     document.title = titre ? `${titre} — FoncierAI` : "FoncierAI"
   }, [titre])
 
+  // Nombre de messages non lus (pastille du menu), actualisé toutes les 20 secondes
+  const [nonLus, setNonLus] = useState(0)
+  useEffect(() => {
+    if (role === "admin") return // l'administrateur ne reçoit pas de messages
+    const charger = () => api.get("/conversations/non_lus/").then((res) => setNonLus(res.data.non_lus)).catch(() => {})
+    charger()
+    const minuterie = setInterval(charger, 20000)
+    return () => clearInterval(minuterie) // arrête l'actualisation en quittant la page
+  }, [role])
+
   // Liens du menu ; "roles" limite certains liens à l'administrateur
   const liens = [
     { to: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ["admin"] },
     { to: "/parcelles", label: role === "vendeur" ? "Mes parcelles" : "Parcelles", icon: LandPlot },
     { to: "/estimation", label: "Estimation IA", icon: BrainCircuit },
     { to: "/transactions", label: "Transactions", icon: ArrowLeftRight },
+    { to: "/messages", label: "Messages", icon: MessagesSquare, pastille: nonLus },
     { to: "/historique", label: "Historique", icon: History },
     { to: "/utilisateurs", label: "Utilisateurs", icon: Users, roles: ["admin"] },
   ].filter((l) => !l.roles || l.roles.includes(role)) // garde seulement les liens autorisés
@@ -44,7 +56,7 @@ export default function Layout({ titre, children }) {
   // Liste des liens (utilisée dans la barre latérale et dans le menu mobile)
   const Navigation = (
     <nav className="flex flex-1 flex-col gap-1 px-3" aria-label="Navigation principale">
-      {liens.map(({ to, label, icon: Icon }) => (
+      {liens.map(({ to, label, icon: Icon, pastille }) => (
         <NavLink
           key={to}
           to={to}
@@ -59,6 +71,12 @@ export default function Layout({ titre, children }) {
         >
           <Icon className="size-5 shrink-0" aria-hidden />
           {label}
+          {/* Pastille rouge : nombre de messages non lus */}
+          {pastille > 0 && (
+            <span className="ml-auto rounded-full bg-rdc-rouge px-1.5 py-0.5 text-[11px] font-bold leading-none text-white" aria-label={`${pastille} non lu(s)`}>
+              {pastille}
+            </span>
+          )}
         </NavLink>
       ))}
     </nav>

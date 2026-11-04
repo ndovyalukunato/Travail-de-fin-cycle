@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react" // hooks React : état local et effets
+import { useNavigate } from "react-router-dom" // redirection vers la page Messages
 import { motion, AnimatePresence } from "framer-motion" // animations (ouverture/fermeture du formulaire)
 // Icônes de la bibliothèque lucide-react
 import {
   LandPlot, Plus, X, Save, Search, Ruler, MapPin, Coins, TriangleAlert, BrainCircuit, Hourglass, RefreshCw, PencilLine,
-  Trash2, Check, Lock,
+  Trash2, Check, Lock, FolderOpen, MessagesSquare,
 } from "lucide-react"
 import Layout from "../components/Layout" // mise en page commune
+// Pièces justificatives : boutons d'ajout, liste des fichiers choisis et fenêtre "dossier"
+import DossierParcelle, { SelecteurFichiers, FichiersChoisis } from "../components/Documents"
 // Composants d'interface
 import {
   Alert, Button, Card, Chargement, ConfirmAction, EmptyState, Field, PageHeader, StatutBadge,
@@ -39,6 +42,10 @@ export default function Parcelles() {
   const [filtreStatut, setFiltreStatut] = useState("tous") // filtre par statut
   const [prixEdition, setPrixEdition] = useState({}) // { idParcelle: nouveau prix en cours de saisie }
   const [actionEnCours, setActionEnCours] = useState(null) // id de la parcelle en cours de modification
+  const [fichiers, setFichiers] = useState([]) // pièces justificatives choisies dans le formulaire
+  const [filtreVerification, setFiltreVerification] = useState("toutes") // filtre par état de vérification
+  const [dossier, setDossier] = useState(null) // parcelle dont le dossier (pièces) est ouvert
+  const navigate = useNavigate() // permet de changer de page par le code
 
   // Charge les parcelles (au début et après chaque modification)
   useEffect(() => {
@@ -68,10 +75,16 @@ export default function Parcelles() {
     e.preventDefault() // empêche le rechargement de la page
     setErreur("")
     setSucces("")
+    // Sans pièce justificative, l'administrateur ne peut pas vérifier l'authenticité du bien
+    if (fichiers.length === 0) {
+      setErreur("Joignez au moins une pièce justificative (photo ou vidéo du titre foncier, PDF...).")
+      return
+    }
     setEnvoi(true)
     try {
-      // Envoie le formulaire en convertissant les nombres
-      const res = await api.post("/parcelles/", {
+      // Formulaire "multipart" : les champs convertis en nombres + les fichiers dans "documents"
+      const donnees = new FormData()
+      Object.entries({
         ...form,
         superficie_ha: entier(form.superficie_ha),
         superficie_ares: entier(form.superficie_ares),
@@ -79,14 +92,18 @@ export default function Parcelles() {
         superficie_pourcent: entier(form.superficie_pourcent),
         prix_reel: parseFloat(form.prix_reel),
         statut: "disponible",
-      })
+      }).forEach(([champ, valeur]) => donnees.append(champ, valeur))
+      fichiers.forEach((f) => donnees.append("documents", f))
+      const res = await api.post("/parcelles/", donnees)
       // Le backend renvoie la parcelle avec le prix estimé par l'IA
       setSucces(
-        res.data.prix_estime
+        (res.data.prix_estime
           ? `Parcelle ${res.data.su} enregistrée. Prix estimé par l'IA : ${formatMontant(res.data.prix_estime)}.`
-          : `Parcelle ${res.data.su} enregistrée (zone inconnue du modèle IA : pas d'estimation).`
+          : `Parcelle ${res.data.su} enregistrée (zone inconnue du modèle IA : pas d'estimation).`)
+        + " Elle sera proposée aux acheteurs dès que l'administrateur aura vérifié les pièces."
       )
       setForm(FORMULAIRE_VIDE) // vide le formulaire
+      setFichiers([]) // et la liste des pièces
       setAfficherFormulaire(false) // le referme
       setVersion((v) => v + 1) // recharge la liste
     } catch (err) {
@@ -134,9 +151,26 @@ export default function Parcelles() {
     setActionEnCours(null)
   }
 
-  // Applique le filtre de statut et la recherche
+  // Acheteur : ouvre (ou retrouve) la discussion avec le vendeur, puis va à la page Messages
+  const discuter = async (p) => {
+    setErreur("")
+    setActionEnCours(p.id)
+    try {
+      const res = await api.post("/conversations/", { parcelle: p.id })
+      navigate(`/messages?c=${res.data.id}`)
+    } catch (err) {
+      setErreur(messageErreur(err, "Impossible d'ouvrir la discussion."))
+      setActionEnCours(null)
+    }
+  }
+
+  // Nombre de dossiers que l'admin doit encore contrôler
+  const nbAVerifier = parcelles.filter((p) => p.verification === "en_attente").length
+
+  // Applique les filtres (statut, vérification) et la recherche
   const parcellesFiltrees = parcelles.filter((p) => {
     if (filtreStatut !== "tous" && p.statut !== filtreStatut) return false // mauvais statut
+    if (filtreVerification !== "toutes" && p.verification !== filtreVerification) return false
     if (!recherche) return true // pas de recherche : on garde la parcelle
     // Recherche dans le SU, la zone, le propriétaire et la nature (sans tenir compte des majuscules)
     return `${p.su} ${p.zone} ${p.proprietaire_nom} ${p.nature}`.toLowerCase().includes(recherche.toLowerCase())
@@ -172,6 +206,15 @@ export default function Parcelles() {
       {/* Messages de succès et d'erreur */}
       {succes && <Alert type="succes" onClose={() => setSucces("")} className="mb-4">{succes}</Alert>}
       {erreur && <Alert type="erreur" onClose={() => setErreur("")} className="mb-4">{erreur}</Alert>}
+      {/* Rappel pour l'admin : dossiers en attente de contrôle */}
+      {role === "admin" && nbAVerifier > 0 && filtreVerification !== "en_attente" && (
+        <Alert type="attention" className="mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span><b>{nbAVerifier} parcelle(s) à vérifier.</b> Elles ne sont pas visibles par les acheteurs tant que leurs pièces ne sont pas contrôlées.</span>
+            <Button taille="sm" variante="secondaire" icon={FolderOpen} onClick={() => setFiltreVerification("en_attente")}>Voir les dossiers</Button>
+          </div>
+        </Alert>
+      )}
 
       {/* Formulaire d'ajout (apparaît et disparaît avec une animation) */}
       <AnimatePresence>
@@ -255,6 +298,21 @@ export default function Parcelles() {
                   </Field>
                 </fieldset>
 
+                {/* Section 4 : pièces justificatives (obligatoires) */}
+                <fieldset>
+                  <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-marine-800">
+                    <FolderOpen className="size-4" aria-hidden /> Pièces justificatives
+                    <span className="text-rdc-rouge" aria-hidden>*</span>
+                  </legend>
+                  <p className="mb-3 text-xs text-slate-500">
+                    Photographiez ou filmez le document original de la parcelle (certificat d'enregistrement, contrat de location,
+                    fiche parcellaire...) ou choisissez-le dans votre galerie. Seuls vous et l'administrateur pouvez voir ces
+                    pièces : elles servent à vérifier l'authenticité du bien. Photos, vidéos ou PDF, 50 Mo maximum par fichier.
+                  </p>
+                  <SelecteurFichiers onAjout={(nouveaux) => setFichiers((liste) => [...liste, ...nouveaux])} desactive={envoi} />
+                  <FichiersChoisis fichiers={fichiers} onRetirer={(i) => setFichiers((liste) => liste.filter((_, j) => j !== i))} />
+                </fieldset>
+
                 {/* Boutons du formulaire */}
                 <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
                   <Button type="button" variante="secondaire" onClick={() => setAfficherFormulaire(false)}>Annuler</Button>
@@ -287,6 +345,15 @@ export default function Parcelles() {
             <option value="en_negociation">En négociation</option>
             <option value="vendue">Vendues</option>
           </select>
+          {/* Filtre par état de vérification (l'acheteur ne voit que des parcelles vérifiées) */}
+          {peutAjouter && (
+            <select value={filtreVerification} onChange={(e) => setFiltreVerification(e.target.value)} className="champ sm:w-52" aria-label="Filtrer par vérification">
+              <option value="toutes">Toutes les vérifications</option>
+              <option value="en_attente">À vérifier</option>
+              <option value="verifiee">Vérifiées</option>
+              <option value="rejetee">Rejetées</option>
+            </select>
+          )}
         </div>
 
         {/* Chargement, liste vide ou tableau */}
@@ -314,7 +381,7 @@ export default function Parcelles() {
                   <th scope="col" className="px-4 py-3 text-right font-semibold">Prix réel</th>
                   <th scope="col" className="px-4 py-3 text-right font-semibold">Estimation IA</th>
                   <th scope="col" className="px-4 py-3 font-semibold">Statut</th>
-                  {peutAjouter && <th scope="col" className="px-4 py-3 font-semibold">Actions</th>}
+                  <th scope="col" className="px-4 py-3 font-semibold">Actions</th>
                 </tr>
               </thead>
               {/* Une ligne par parcelle */}
@@ -372,17 +439,48 @@ export default function Parcelles() {
                         {formatMontant(p.prix_estime)}
                       </span>
                     </td>
-                    <td className="px-4 py-3"><StatutBadge statut={p.statut} /></td>
+                    {/* Statut de vente + état de la vérification (et motif en cas de rejet) */}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col items-start gap-1">
+                        <StatutBadge statut={p.statut} />
+                        <StatutBadge statut={p.verification} />
+                        {p.verification === "rejetee" && p.motif_rejet && (
+                          <span className="max-w-48 text-xs text-red-600" title={p.motif_rejet}>{p.motif_rejet}</span>
+                        )}
+                      </div>
+                    </td>
+                    {/* Acheteur : discuter du prix avec le vendeur */}
+                    {!peutAjouter && (
+                      <td className="px-4 py-3">
+                        <Button taille="sm" variante="secondaire" icon={MessagesSquare} chargement={actionEnCours === p.id} onClick={() => discuter(p)}>
+                          Discuter
+                        </Button>
+                      </td>
+                    )}
                     {/* Actions du propriétaire / de l'admin */}
                     {peutAjouter && (
                       <td className="px-4 py-3">
                         {p.statut === "vendue" ? (
-                          // Parcelle vendue : plus aucune action possible
-                          <span className="inline-flex items-center gap-1 text-xs text-slate-400" title="Vente validée et enregistrée sur la blockchain">
-                            <Lock className="size-3.5" aria-hidden /> Définitive
-                          </span>
+                          // Parcelle vendue : seules les pièces restent consultables
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <Button taille="sm" variante="secondaire" icon={FolderOpen} onClick={() => setDossier(p)}>
+                              Pièces ({p.nb_documents})
+                            </Button>
+                            <span className="inline-flex items-center gap-1 text-xs text-slate-400" title="Vente validée et enregistrée sur la blockchain">
+                              <Lock className="size-3.5" aria-hidden /> Définitive
+                            </span>
+                          </div>
                         ) : (
                           <div className="flex flex-wrap gap-1.5">
+                            {/* Ouvre le dossier : pièces justificatives et, pour l'admin, la vérification */}
+                            <Button
+                              taille="sm"
+                              variante={role === "admin" && p.verification === "en_attente" ? "primaire" : "secondaire"}
+                              icon={FolderOpen}
+                              onClick={() => setDossier(p)}
+                            >
+                              {role === "admin" && p.verification === "en_attente" ? "Vérifier" : "Pièces"} ({p.nb_documents})
+                            </Button>
                             {/* Basculer entre "disponible" et "en négociation" */}
                             {p.statut === "disponible" ? (
                               <Button
@@ -437,6 +535,11 @@ export default function Parcelles() {
           </div>
         )}
       </Card>
+
+      {/* Fenêtre du dossier d'une parcelle (pièces + vérification) ; la liste est rechargée après chaque changement */}
+      {dossier && (
+        <DossierParcelle parcelle={dossier} onClose={() => setDossier(null)} onChange={() => setVersion((v) => v + 1)} />
+      )}
     </Layout>
   )
 }

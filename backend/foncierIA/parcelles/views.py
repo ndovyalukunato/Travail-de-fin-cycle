@@ -1,11 +1,56 @@
 from decimal import Decimal  # nombres décimaux exacts (pour les prix en base)
 
+import mimetypes  # déduit le type MIME d'un fichier à partir de son nom
+import os  # découpe du nom de fichier (extension)
+
+from django.conf import settings  # réglages du projet (taille maximale des pièces)
+from django.db import transaction as db_transaction  # regroupe plusieurs écritures en base (tout ou rien)
 from django.db.models import Q  # combinaison de conditions (OU) dans les requêtes
-from rest_framework import viewsets, permissions  # ViewSets et permissions DRF
+from django.http import FileResponse  # réponse HTTP qui envoie un fichier
+from rest_framework import viewsets, permissions, mixins  # ViewSets et permissions DRF
+from rest_framework.decorators import action  # routes supplémentaires sur un ViewSet
 from rest_framework.exceptions import PermissionDenied, ValidationError  # erreurs 403 et 400
-from .models import Parcelle  # modèle des parcelles
-from .serializers import ParcelleSerializer  # conversion Parcelle <-> JSON
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser  # JSON et formulaires avec fichiers
+from rest_framework.response import Response  # réponse JSON
+from .models import Parcelle, DocumentParcelle  # modèles des parcelles et de leurs pièces
+from .serializers import ParcelleSerializer, DocumentParcelleSerializer  # conversion <-> JSON
 from ia.modele import analyser_parcelle  # analyse IA (estimation + détection de fraude)
+
+# Extensions acceptées pour les pièces justificatives, par type
+EXTENSIONS_DOCUMENTS = {
+    'photo': {'.jpg', '.jpeg', '.png', '.webp', '.gif'},
+    'video': {'.mp4', '.webm', '.mov', '.3gp', '.mkv'},
+    'document': {'.pdf'},
+}
+
+
+def type_de_fichier(nom):
+    """Renvoie 'photo', 'video' ou 'document' selon l'extension (None si refusée)."""
+    extension = os.path.splitext(nom)[1].lower()
+    for type_piece, extensions in EXTENSIONS_DOCUMENTS.items():
+        if extension in extensions:
+            return type_piece
+    return None
+
+
+def controler_fichiers(fichiers):
+    """Refuse (erreur 400) les fichiers d'un type non accepté ou trop volumineux."""
+    for f in fichiers:
+        if type_de_fichier(f.name) is None:
+            raise ValidationError({
+                'erreur': f"« {f.name} » : format non accepté. Envoyez des photos, des vidéos ou des PDF."
+            })
+        if f.size > settings.TAILLE_MAX_DOCUMENT:
+            limite = settings.TAILLE_MAX_DOCUMENT // (1024 * 1024)
+            raise ValidationError({'erreur': f"« {f.name} » dépasse la taille maximale de {limite} Mo."})
+
+
+def enregistrer_documents(parcelle, fichiers):
+    """Enregistre les pièces justificatives (déjà contrôlées) d'une parcelle."""
+    for f in fichiers:
+        DocumentParcelle.objects.create(
+            parcelle=parcelle, fichier=f, type=type_de_fichier(f.name), nom=os.path.basename(f.name)[:255],
+        )
 
 
 def mettre_a_jour_prix_estime(parcelle):
@@ -34,12 +79,14 @@ class ParcelleViewSet(viewsets.ModelViewSet):
     """
     - admin    : voit toutes les parcelles
     - vendeur  : ne voit que SES propres parcelles
-    - acheteur : voit les parcelles disponibles + celles pour lesquelles
-                 il a une transaction (pour son historique)
+    - acheteur : voit les parcelles disponibles ET vérifiées par l'admin
+                 + celles pour lesquelles il a une transaction (pour son historique)
     """
     queryset = Parcelle.objects.all()
     serializer_class = ParcelleSerializer  # serializer utilisé pour le JSON
     permission_classes = [permissions.IsAuthenticated]  # il faut être connecté
+    # JSON pour les modifications, "multipart" pour l'ajout avec pièces jointes
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     # Détermine les parcelles visibles selon le rôle de l'utilisateur connecté
     def get_queryset(self):
@@ -51,9 +98,10 @@ class ParcelleViewSet(viewsets.ModelViewSet):
         if user.role == 'vendeur':
             return qs.filter(proprietaire=user)  # uniquement ses propres parcelles
         # acheteur
-        # Parcelles disponibles OU pour lesquelles il a fait une offre ; distinct() évite les doublons
+        # Parcelles disponibles et vérifiées, OU pour lesquelles il a fait une offre ;
+        # distinct() évite les doublons
         return qs.filter(
-            Q(statut='disponible') | Q(transaction__acheteur=user)
+            Q(statut='disponible', verification='verifiee') | Q(transaction__acheteur=user)
         ).distinct()
 
     # POST /api/parcelles/ : enregistrement d'une nouvelle parcelle
@@ -61,8 +109,20 @@ class ParcelleViewSet(viewsets.ModelViewSet):
         # Seuls les vendeurs et l'admin peuvent ajouter une parcelle
         if self.request.user.role not in ('vendeur', 'admin'):
             raise PermissionDenied("Seul un vendeur ou un administrateur peut ajouter une parcelle.")
-        # Le propriétaire est l'utilisateur connecté (il ne peut pas le choisir)
-        parcelle = serializer.save(proprietaire=self.request.user)
+        # Pièces justificatives obligatoires : sans elles, l'admin ne peut pas vérifier l'authenticité
+        fichiers = self.request.FILES.getlist('documents')
+        if not fichiers:
+            raise ValidationError({
+                'erreur': "Joignez au moins une pièce justificative de la parcelle "
+                          "(photo ou vidéo du titre foncier, PDF...)."
+            })
+        controler_fichiers(fichiers)
+        # Parcelle et pièces sont enregistrées ensemble (tout ou rien)
+        with db_transaction.atomic():
+            # Le propriétaire est l'utilisateur connecté (il ne peut pas le choisir) ;
+            # la parcelle attend la vérification de l'admin avant d'être proposée aux acheteurs
+            parcelle = serializer.save(proprietaire=self.request.user, verification='en_attente')
+            enregistrer_documents(parcelle, fichiers)
         mettre_a_jour_prix_estime(parcelle)  # l'IA calcule aussitôt le prix estimé
 
     # Refuse l'action si l'utilisateur n'est ni l'admin ni le propriétaire
@@ -101,7 +161,14 @@ class ParcelleViewSet(viewsets.ModelViewSet):
                               "annulez d'abord la vente depuis la page Transactions."
                 })
 
-        parcelle = serializer.save()  # enregistre les modifications
+        # Si le vendeur change l'identité d'une parcelle déjà contrôlée, elle doit être revérifiée
+        champs_identite = {'su', 'superficie_ha', 'superficie_ares', 'superficie_ca', 'superficie_pourcent',
+                           'zone', 'nature', 'titre_foncier'}
+        modifies = {c for c in champs_identite & set(donnees) if donnees[c] != getattr(parcelle, c)}
+        if modifies and not admin and parcelle.verification != 'en_attente':
+            parcelle = serializer.save(verification='en_attente', motif_rejet='')
+        else:
+            parcelle = serializer.save()  # enregistre les modifications
 
         # Nouvelle estimation IA seulement si une caractéristique utile au modèle a changé
         champs_ia = {'superficie_ha', 'superficie_ares', 'superficie_ca', 'superficie_pourcent',
@@ -120,4 +187,96 @@ class ParcelleViewSet(viewsets.ModelViewSet):
                 'erreur': "Impossible de supprimer une parcelle qui a des transactions "
                           "(leur historique serait perdu). Mettez-la plutôt en négociation."
             })
+        # Efface aussi les fichiers des pièces sur le disque (la base, elle, les supprime en cascade)
+        for document in instance.documents.all():
+            document.fichier.delete(save=False)
         instance.delete()  # suppression définitive
+
+    # GET  /api/parcelles/<id>/documents/ : liste des pièces justificatives
+    # POST /api/parcelles/<id>/documents/ : ajout de pièces (champ "documents", un ou plusieurs fichiers)
+    @action(detail=True, methods=['get', 'post'])
+    def documents(self, request, pk=None):
+        parcelle = self.get_object()
+        user = request.user
+        # Les pièces sont confidentielles : admin et propriétaire uniquement
+        if user.role != 'admin' and parcelle.proprietaire_id != user.id:
+            raise PermissionDenied("Les pièces d'une parcelle sont réservées à son propriétaire et à l'administrateur.")
+
+        if request.method == 'POST':
+            if parcelle.statut == 'vendue' and user.role != 'admin':
+                raise PermissionDenied("Une parcelle vendue ne peut plus être modifiée.")
+            fichiers = request.FILES.getlist('documents')
+            if not fichiers:
+                raise ValidationError({'erreur': "Aucun fichier reçu."})
+            controler_fichiers(fichiers)
+            with db_transaction.atomic():
+                enregistrer_documents(parcelle, fichiers)
+                # De nouvelles pièces après un rejet : le dossier repasse devant l'admin
+                if parcelle.verification == 'rejetee':
+                    parcelle.verification = 'en_attente'
+                    parcelle.motif_rejet = ''
+                    parcelle.save(update_fields=['verification', 'motif_rejet'])
+
+        pieces = parcelle.documents.order_by('created_at')
+        return Response(DocumentParcelleSerializer(pieces, many=True).data)
+
+    # POST /api/parcelles/<id>/verifier/ : décision de l'admin après examen des pièces
+    # Corps : { "decision": "verifiee" } ou { "decision": "rejetee", "motif": "..." }
+    @action(detail=True, methods=['post'])
+    def verifier(self, request, pk=None):
+        if request.user.role != 'admin':
+            raise PermissionDenied("Seul un administrateur peut vérifier une parcelle.")
+        parcelle = self.get_object()
+        decision = request.data.get('decision')
+        motif = (request.data.get('motif') or '').strip()
+
+        if decision not in ('verifiee', 'rejetee'):
+            raise ValidationError({'erreur': "Décision invalide : « verifiee » ou « rejetee »."})
+        if decision == 'verifiee' and not parcelle.documents.exists():
+            raise ValidationError({'erreur': "Impossible de vérifier une parcelle sans pièce justificative."})
+        if decision == 'rejetee' and not motif:
+            raise ValidationError({'erreur': "Indiquez le motif du rejet : il sera affiché au vendeur."})
+
+        parcelle.verification = decision
+        parcelle.motif_rejet = motif[:255] if decision == 'rejetee' else ''
+        parcelle.save(update_fields=['verification', 'motif_rejet'])
+        return Response(self.get_serializer(parcelle).data)
+
+
+# Routes /api/documents/<id>/ (suppression) et /api/documents/<id>/fichier/ (téléchargement)
+class DocumentParcelleViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """Pièces justificatives : accessibles à l'admin et au propriétaire de la parcelle uniquement."""
+    queryset = DocumentParcelle.objects.all()
+    serializer_class = DocumentParcelleSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    # Un vendeur ne peut atteindre que les pièces de ses propres parcelles
+    def get_queryset(self):
+        user = self.request.user
+        qs = DocumentParcelle.objects.select_related('parcelle')
+        if user.role == 'admin':
+            return qs
+        return qs.filter(parcelle__proprietaire=user)
+
+    # GET /api/documents/<id>/fichier/ : envoie le fichier (le frontend l'affiche dans la page)
+    @action(detail=True, methods=['get'])
+    def fichier(self, request, pk=None):
+        document = self.get_object()
+        type_mime = mimetypes.guess_type(document.nom)[0] or 'application/octet-stream'
+        try:
+            contenu = document.fichier.open('rb')
+        except FileNotFoundError:
+            return Response({'erreur': "Le fichier est introuvable sur le serveur."}, status=404)
+        return FileResponse(contenu, content_type=type_mime, filename=document.nom)
+
+    # DELETE /api/documents/<id>/ : retrait d'une pièce
+    def perform_destroy(self, instance):
+        parcelle = instance.parcelle
+        if self.request.user.role != 'admin':
+            # Les pièces qui ont servi à la vérification doivent rester au dossier
+            if parcelle.verification == 'verifiee':
+                raise PermissionDenied("Les pièces d'une parcelle vérifiée ne peuvent plus être retirées.")
+            if parcelle.documents.count() <= 1:
+                raise ValidationError({'erreur': "Une parcelle doit garder au moins une pièce justificative."})
+        instance.fichier.delete(save=False)  # efface le fichier du disque
+        instance.delete()

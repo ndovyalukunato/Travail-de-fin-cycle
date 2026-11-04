@@ -17,6 +17,13 @@ class Parcelle(models.Model):
         ('en_negociation', 'En négociation'),  # offre acceptée ou retirée temporairement de la vente
     ]
 
+    # Contrôle d'authenticité par l'administrateur, à partir des pièces justificatives
+    VERIFICATION_CHOICES = [
+        ('en_attente', 'En attente de vérification'),  # pièces déposées, pas encore contrôlées
+        ('verifiee', 'Vérifiée'),  # authenticité confirmée : la parcelle est proposée aux acheteurs
+        ('rejetee', 'Rejetée'),  # pièces insuffisantes ou douteuses (voir motif_rejet)
+    ]
+
     su = models.CharField(max_length=20, unique=True)  # numéro SU (identifiant cadastral unique)
     # Superficie cadastrale : hectares, ares, centiares et pourcentage de centiare
     superficie_ha = models.IntegerField(default=0)
@@ -35,8 +42,37 @@ class Parcelle(models.Model):
     hash_blockchain = models.CharField(max_length=255, blank=True, null=True)
     # Propriétaire ; related_name permet d'écrire utilisateur.parcelles.all()
     proprietaire = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='parcelles')
+    # Résultat du contrôle des pièces par l'admin ; tant qu'il n'est pas "verifiee",
+    # la parcelle n'est pas visible par les acheteurs
+    verification = models.CharField(max_length=20, choices=VERIFICATION_CHOICES, default='en_attente')
+    motif_rejet = models.CharField(max_length=255, blank=True)  # explication donnée par l'admin en cas de rejet
     created_at = models.DateTimeField(auto_now_add=True)  # date d'enregistrement
 
     # Texte affiché quand on imprime une parcelle (ex. : "SU:63251 - mapendo")
     def __str__(self):
         return f'{self.su} - {self.zone}'
+
+
+# Dossier de stockage d'une pièce : media/parcelles/<id de la parcelle>/<nom du fichier>
+def chemin_document(instance, nom_fichier):
+    return f'parcelles/{instance.parcelle_id}/{nom_fichier}'
+
+
+# Pièces justificatives d'une parcelle (titre foncier, photos, vidéo du terrain...)
+# Elles ne sont consultables que par le propriétaire et l'administrateur.
+class DocumentParcelle(models.Model):
+    TYPE_CHOICES = [
+        ('photo', 'Photo'),
+        ('video', 'Vidéo'),
+        ('document', 'Document'),  # PDF
+    ]
+
+    # Parcelle concernée ; related_name permet d'écrire parcelle.documents.all()
+    parcelle = models.ForeignKey(Parcelle, on_delete=models.CASCADE, related_name='documents')
+    fichier = models.FileField(upload_to=chemin_document, max_length=255)  # fichier enregistré dans MEDIA_ROOT
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)  # déduit de l'extension du fichier
+    nom = models.CharField(max_length=255)  # nom d'origine du fichier (affiché dans l'interface)
+    created_at = models.DateTimeField(auto_now_add=True)  # date du dépôt
+
+    def __str__(self):
+        return f'{self.nom} ({self.parcelle.su})'

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'parcelles',  # terrains
     'transactions',  # ventes
     'estimations',  # historique des estimations IA
+    'messagerie',  # discussions acheteur <-> vendeur autour d'une parcelle
 ]
 
 # Couches traversées par chaque requête, dans l'ordre
@@ -150,6 +151,13 @@ USE_TZ = True  # enregistre les dates avec leur fuseau horaire
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'  # préfixe des URL des fichiers statiques
+
+# Fichiers envoyés par les utilisateurs (pièces justificatives des parcelles).
+# Ils ne sont PAS servis publiquement : seule la vue /api/documents/<id>/fichier/
+# les renvoie, après avoir vérifié que le demandeur est l'admin ou le propriétaire.
+MEDIA_ROOT = BASE_DIR / 'media'
+# Taille maximale d'une pièce justificative (photo, vidéo ou PDF)
+TAILLE_MAX_DOCUMENT = 50 * 1024 * 1024  # 50 Mo
 
 # Autoriser les requêtes de n'importe quelle origine CORS (React frontend <-> Django backend)
 CORS_ALLOW_ALL_ORIGINS = True

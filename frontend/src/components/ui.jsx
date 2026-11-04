@@ -2,6 +2,7 @@ import { useState } from "react" // état local (utilisé par ConfirmAction)
 // Icônes de la bibliothèque lucide-react
 import {
   CircleCheck, CircleAlert, TriangleAlert, Info, X, Clock, CircleX, LoaderCircle, Inbox, Handshake,
+  ShieldCheck, ShieldX, ShieldQuestionMark,
 } from "lucide-react"
 
 // ----------------------------------------------------------------
@@ -133,6 +134,10 @@ const STATUTS = {
   disponible: { label: "Disponible", icon: CircleCheck, cls: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
   vendue: { label: "Vendue", icon: CircleCheck, cls: "bg-slate-100 text-slate-600 ring-slate-200" },
   en_negociation: { label: "En négociation", icon: Clock, cls: "bg-amber-50 text-amber-700 ring-amber-200" },
+  // Contrôle d'authenticité d'une parcelle par l'administrateur
+  en_attente: { label: "À vérifier", icon: ShieldQuestionMark, cls: "bg-amber-50 text-amber-700 ring-amber-200" },
+  verifiee: { label: "Vérifiée", icon: ShieldCheck, cls: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
+  rejetee: { label: "Rejetée", icon: ShieldX, cls: "bg-red-50 text-red-700 ring-red-200" },
 }
 
 // Le statut est toujours indiqué par une icône + un texte (pas seulement une couleur)

@@ -68,6 +68,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
         # On ne peut faire une offre que sur une parcelle disponible
         if parcelle.statut != 'disponible':
             raise PermissionDenied("Cette parcelle n'est pas disponible.")
+        # ... et dont l'authenticité a été vérifiée par l'administrateur
+        if parcelle.verification != 'verifiee':
+            raise PermissionDenied("Cette parcelle n'a pas encore été vérifiée par l'administrateur.")
         # Un acheteur ne peut pas avoir deux offres ouvertes sur la même parcelle
         if Transaction.objects.filter(parcelle=parcelle, acheteur=user, statut__in=STATUTS_OUVERTS).exists():
             raise ValidationError({'erreur': "Vous avez déjà une offre en cours sur cette parcelle."})

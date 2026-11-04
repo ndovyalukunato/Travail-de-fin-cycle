@@ -1,5 +1,5 @@
-2026/09/24-11:15:08.739 25bc Recovering log #9
-2026/09/24-11:15:08.779 25bc Level-0 table #11: started
-2026/09/24-11:15:09.083 25bc Level-0 table #11: 5159 bytes OK
-2026/09/24-11:15:09.538 25bc Delete type=0 #9
-2026/09/24-11:15:09.538 25bc Delete type=3 #7
+2026/10/22-12:21:25.902 3bfc Recovering log #28
+2026/10/22-12:21:25.903 3bfc Level-0 table #31: started
+2026/10/22-12:21:26.038 3bfc Level-0 table #31: 5524 bytes OK
+2026/10/22-12:21:26.765 3bfc Delete type=0 #28
+2026/10/22-12:21:26.767 3bfc Delete type=3 #26

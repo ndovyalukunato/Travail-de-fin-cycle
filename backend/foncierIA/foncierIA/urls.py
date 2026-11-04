@@ -8,9 +8,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Vues de chaque application du projet
 from utilisateurs.views import UtilisateurViewSet, connexion, mon_profil
-from parcelles.views import ParcelleViewSet
+from parcelles.views import ParcelleViewSet, DocumentParcelleViewSet
 from transactions.views import TransactionViewSet, statut_blockchain
 from estimations.views import EstimationViewSet, estimer, zones, statistiques
+from messagerie.views import ConversationViewSet
 
 # Le routeur crée pour chaque ressource les routes : liste (GET), création (POST),
 # détail (GET /id/), modification (PUT/PATCH /id/) et suppression (DELETE /id/)
@@ -19,6 +20,8 @@ router.register(r'utilisateurs', UtilisateurViewSet)  # /api/utilisateurs/
 router.register(r'parcelles', ParcelleViewSet)  # /api/parcelles/
 router.register(r'transactions', TransactionViewSet)  # /api/transactions/
 router.register(r'estimations', EstimationViewSet)  # /api/estimations/
+router.register(r'documents', DocumentParcelleViewSet)  # /api/documents/ (pièces justificatives des parcelles)
+router.register(r'conversations', ConversationViewSet)  # /api/conversations/ (discussions acheteur <-> vendeur)
 
 # Liste de toutes les routes de l'application
 urlpatterns = [
