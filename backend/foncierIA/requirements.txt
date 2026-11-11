@@ -8,3 +8,4 @@ web3
 scikit-learn==1.8.0
 joblib
 pandas
+Pillow

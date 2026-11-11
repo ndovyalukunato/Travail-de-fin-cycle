@@ -7,7 +7,7 @@ class Estimation(models.Model):
     parcelle = models.ForeignKey(Parcelle, on_delete=models.CASCADE)
     superficie = models.FloatField()  # superficie utilisée pour la prédiction (en m²)
     zone = models.CharField(max_length=100)  # lotissement utilisé pour la prédiction
-    prix_predit = models.DecimalField(max_digits=15, decimal_places=2)  # prix moyen prédit (LR + RF)
+    prix_predit = models.DecimalField(max_digits=15, decimal_places=2)  # prix moyen prédit (LR + RF + réseau de neurones)
     created_at = models.DateTimeField(auto_now_add=True)  # date de l'estimation
 
     # Texte affiché quand on imprime une estimation

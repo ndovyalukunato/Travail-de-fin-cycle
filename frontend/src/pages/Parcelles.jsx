@@ -4,11 +4,14 @@ import { motion, AnimatePresence } from "framer-motion" // animations (ouverture
 // Icônes de la bibliothèque lucide-react
 import {
   LandPlot, Plus, X, Save, Search, Ruler, MapPin, Coins, TriangleAlert, BrainCircuit, Hourglass, RefreshCw, PencilLine,
-  Trash2, Check, Lock, FolderOpen, MessagesSquare,
+  Trash2, Check, Lock, FolderOpen, MessagesSquare, Map as IconeCarte, List, Satellite,
 } from "lucide-react"
 import Layout from "../components/Layout" // mise en page commune
 // Pièces justificatives : boutons d'ajout, liste des fichiers choisis et fenêtre "dossier"
 import DossierParcelle, { SelecteurFichiers, FichiersChoisis } from "../components/Documents"
+// Cartes (satellite / plan) : saisie de la position réelle et consultation
+import { SelecteurPosition, FenetreCarte, CarteParcelles } from "../components/Carte"
+import { aPosition } from "../geo"
 // Composants d'interface
 import {
   Alert, Button, Card, Chargement, ConfirmAction, EmptyState, Field, PageHeader, StatutBadge,
@@ -20,6 +23,12 @@ const FORMULAIRE_VIDE = {
   su: "", superficie_ha: "0", superficie_ares: "", superficie_ca: "", superficie_pourcent: "0",
   zone: "", usage: "residentiel", nature: "", prix_reel: "", titre_foncier: "",
 }
+
+// Écart maximal entre le prix réel et le prix estimé par l'IA (doit correspondre à ECART_PRIX_MAX dans settings.py)
+const ECART_PRIX_MAX = 0.10
+
+// Position vide (parcelle non localisée)
+const POSITION_VIDE = { latitude: null, longitude: null, precision_gps: null, contour: [] }
 
 // Libellés des usages possibles
 const USAGES = { residentiel: "Résidentiel", commercial: "Commercial", autre: "Autre" }
@@ -45,6 +54,11 @@ export default function Parcelles() {
   const [fichiers, setFichiers] = useState([]) // pièces justificatives choisies dans le formulaire
   const [filtreVerification, setFiltreVerification] = useState("toutes") // filtre par état de vérification
   const [dossier, setDossier] = useState(null) // parcelle dont le dossier (pièces) est ouvert
+  const [position, setPosition] = useState(POSITION_VIDE) // position saisie dans le formulaire d'ajout
+  const [carte, setCarte] = useState(null) // parcelle affichée dans la fenêtre "Localisation"
+  const [affichage, setAffichage] = useState("liste") // "liste" (tableau) ou "carte" (vue d'ensemble)
+  const [estimationForm, setEstimationForm] = useState(null) // { cle, prix } : prix estimé pour le formulaire d'ajout
+  const [propositions, setPropositions] = useState({}) // { idParcelle: prix proposé par le système } (édition du prix)
   const navigate = useNavigate() // permet de changer de page par le code
 
   // Charge les parcelles (au début et après chaque modification)
@@ -70,6 +84,27 @@ export default function Parcelles() {
     entier(form.superficie_ha) * 10000 + entier(form.superficie_ares) * 100 +
     entier(form.superficie_ca) + entier(form.superficie_pourcent) / 100
 
+  // ----- Règle des 10 % : estimation en direct pendant la saisie -----
+  // L'estimation ne dépend que de la superficie, du lotissement et de la nature du titre ;
+  // le prix saisi est ensuite comparé à la fourchette estimation ± 10 %.
+  const infrastructure = form.nature.toLowerCase().includes("certificat") ? 1 : 0
+  const cleEstimation = `${superficieM2}|${form.zone}|${infrastructure}`
+  useEffect(() => {
+    if (!(superficieM2 > 0) || !form.zone) return
+    const minuterie = setTimeout(() => {
+      api.post("/estimer/", { superficie: superficieM2, zone: form.zone, infrastructure })
+        .then((res) => setEstimationForm({ cle: cleEstimation, prix: res.data.estimation.moyenne }))
+        .catch(() => setEstimationForm({ cle: cleEstimation, prix: null })) // lotissement inconnu du modèle
+    }, 400) // attend que l'utilisateur ait fini de taper
+    return () => clearTimeout(minuterie)
+  }, [cleEstimation, superficieM2, form.zone, infrastructure])
+
+  const estimationActuelle = estimationForm?.cle === cleEstimation ? estimationForm.prix : undefined
+  const prixSaisi = parseFloat(form.prix_reel)
+  const ecartPrix = estimationActuelle && prixSaisi > 0 ? (prixSaisi - estimationActuelle) / estimationActuelle : null
+  const prixRefuse = ecartPrix !== null && Math.abs(ecartPrix) > ECART_PRIX_MAX
+  const utiliserPrixPropose = () => setForm({ ...form, prix_reel: String(Math.round(estimationActuelle)) })
+
   // Enregistrement d'une nouvelle parcelle
   const handleSubmit = async (e) => {
     e.preventDefault() // empêche le rechargement de la page
@@ -94,15 +129,23 @@ export default function Parcelles() {
         statut: "disponible",
       }).forEach(([champ, valeur]) => donnees.append(champ, valeur))
       fichiers.forEach((f) => donnees.append("documents", f))
+      // Position réelle de la parcelle (facultative mais recommandée)
+      if (aPosition(position)) {
+        donnees.append("latitude", position.latitude)
+        donnees.append("longitude", position.longitude)
+        if (position.precision_gps) donnees.append("precision_gps", position.precision_gps)
+        if (position.contour.length >= 3) donnees.append("contour", JSON.stringify(position.contour))
+      }
       const res = await api.post("/parcelles/", donnees)
       // Le backend renvoie la parcelle avec le prix estimé par l'IA
       setSucces(
         (res.data.prix_estime
           ? `Parcelle ${res.data.su} enregistrée. Prix estimé par l'IA : ${formatMontant(res.data.prix_estime)}.`
           : `Parcelle ${res.data.su} enregistrée (zone inconnue du modèle IA : pas d'estimation).`)
-        + " Elle sera proposée aux acheteurs dès que l'administrateur aura vérifié les pièces."
+        + " Elle sera proposée aux acheteurs dès que l'administrateur aura authentifié les pièces."
       )
       setForm(FORMULAIRE_VIDE) // vide le formulaire
+      setPosition(POSITION_VIDE)
       setFichiers([]) // et la liste des pièces
       setAfficherFormulaire(false) // le referme
       setVersion((v) => v + 1) // recharge la liste
@@ -128,6 +171,9 @@ export default function Parcelles() {
       setVersion((v) => v + 1) // recharge la liste
     } catch (err) {
       setErreur(messageErreur(err, "Erreur lors de la modification de la parcelle."))
+      // Prix trop éloigné de l'estimation : le système propose un prix au vendeur
+      const propose = err.response?.data?.prix_propose
+      if (propose) setPropositions((pr) => ({ ...pr, [p.id]: Math.round(parseFloat(propose)) }))
     }
     setActionEnCours(null)
   }
@@ -164,8 +210,48 @@ export default function Parcelles() {
     }
   }
 
+  // Enregistre la position modifiée depuis la fenêtre "Localisation"
+  const enregistrerPosition = async (valeur) => {
+    try {
+      const res = await api.patch(`/parcelles/${carte.id}/`, valeur)
+      setCarte(res.data)
+      setSucces(`Position de la parcelle ${carte.su} enregistrée.`)
+      setVersion((v) => v + 1)
+    } catch (err) {
+      throw new Error(messageErreur(err, "Erreur lors de l'enregistrement de la position."), { cause: err })
+    }
+  }
+
+  // Bouton "Carte" d'une ligne du tableau
+  const boutonCarte = (p) => (
+    <Button taille="sm" variante="secondaire" icon={aPosition(p) ? Satellite : MapPin} onClick={() => setCarte(p)}
+      title={aPosition(p) ? "Voir la parcelle sur la carte (satellite / plan)" : "Parcelle non localisée"}>
+      {aPosition(p) ? "Carte" : peutAjouter && p.statut !== "vendue" ? "Localiser" : "Carte"}
+    </Button>
+  )
+
   // Nombre de dossiers que l'admin doit encore contrôler
   const nbAVerifier = parcelles.filter((p) => p.verification === "en_attente").length
+
+  // Admin : lance le réseau de neurones sur tous les dossiers en attente
+  const [analyseIA, setAnalyseIA] = useState(false)
+  const authentifierTout = async () => {
+    setErreur("")
+    setSucces("")
+    setAnalyseIA(true)
+    try {
+      const { data } = await api.post("/parcelles/authentifier_en_attente/")
+      setSucces(
+        `Réseau de neurones : ${data.analyses} dossier(s) analysé(s) — ${data.authentique} authentique(s) (vérifiés), `
+        + `${data.douteux} douteux, ${data.falsifie} probablement falsifié(s), ${data.introuvable} absent(s) du registre. `
+        + "Ouvrez les dossiers restants pour décider."
+      )
+      setVersion((v) => v + 1)
+    } catch (err) {
+      setErreur(messageErreur(err, "Erreur lors de l'authentification par l'IA."))
+    }
+    setAnalyseIA(false)
+  }
 
   // Applique les filtres (statut, vérification) et la recherche
   const parcellesFiltrees = parcelles.filter((p) => {
@@ -210,8 +296,11 @@ export default function Parcelles() {
       {role === "admin" && nbAVerifier > 0 && filtreVerification !== "en_attente" && (
         <Alert type="attention" className="mb-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span><b>{nbAVerifier} parcelle(s) à vérifier.</b> Elles ne sont pas visibles par les acheteurs tant que leurs pièces ne sont pas contrôlées.</span>
-            <Button taille="sm" variante="secondaire" icon={FolderOpen} onClick={() => setFiltreVerification("en_attente")}>Voir les dossiers</Button>
+            <span><b>{nbAVerifier} parcelle(s) à vérifier.</b> Elles ne sont pas visibles par les acheteurs tant que leurs pièces ne sont pas authentifiées.</span>
+            <div className="flex flex-wrap gap-2">
+              <Button taille="sm" icon={BrainCircuit} chargement={analyseIA} onClick={authentifierTout}>Lancer l'authentification IA</Button>
+              <Button taille="sm" variante="secondaire" icon={FolderOpen} onClick={() => setFiltreVerification("en_attente")}>Voir les dossiers</Button>
+            </div>
           </div>
         </Alert>
       )}
@@ -293,12 +382,66 @@ export default function Parcelles() {
                   <legend className="mb-3 flex items-center gap-2 text-sm font-semibold text-marine-800">
                     <Coins className="size-4" aria-hidden /> Valeur
                   </legend>
-                  <Field label="Prix réel ($)" htmlFor="prix" requis aide="Le prix estimé par l'IA sera calculé automatiquement après l'enregistrement." className="md:w-1/2">
-                    <input id="prix" type="number" min="0" step="any" name="prix_reel" value={form.prix_reel} onChange={maj} required className="champ" />
-                  </Field>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <Field label="Prix réel ($)" htmlFor="prix" requis aide={`Il doit rester à moins de ${ECART_PRIX_MAX * 100} % du prix estimé par l'IA.`}>
+                      <input id="prix" type="number" min="0" step="any" name="prix_reel" value={form.prix_reel} onChange={maj} required
+                        aria-invalid={prixRefuse} className={`champ ${prixRefuse ? "border-red-400! ring-2 ring-red-100" : ""}`} />
+                    </Field>
+                    {/* Estimation en direct et prix proposé par le système */}
+                    <div role="status" className={`rounded-xl border p-3 text-sm ${
+                      prixRefuse ? "border-red-200 bg-red-50" : ecartPrix !== null ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+                      {!(superficieM2 > 0) || !form.zone ? (
+                        <p className="text-slate-500">Renseignez la superficie et le lotissement : l'IA estimera le prix.</p>
+                      ) : estimationActuelle === undefined ? (
+                        <p className="text-slate-500">Estimation en cours...</p>
+                      ) : estimationActuelle === null ? (
+                        <p className="text-slate-500">Lotissement inconnu du modèle IA : pas d'estimation, le prix n'est pas contrôlé.</p>
+                      ) : (
+                        <>
+                          <p className="flex items-center gap-1.5 text-slate-700">
+                            <BrainCircuit className="size-4 text-violet-600" aria-hidden />
+                            Prix estimé par l'IA : <b>{formatMontant(estimationActuelle)}</b>
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            Prix accepté : de {formatMontant(estimationActuelle * (1 - ECART_PRIX_MAX))} à {formatMontant(estimationActuelle * (1 + ECART_PRIX_MAX))}
+                          </p>
+                          {prixRefuse ? (
+                            <div className="mt-2">
+                              <p className="font-medium text-red-700">
+                                Votre prix s'écarte de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} % : il sera refusé.
+                              </p>
+                              <Button type="button" taille="sm" variante="primaire" icon={Check} className="mt-1.5" onClick={utiliserPrixPropose}>
+                                Utiliser le prix proposé ({formatMontant(Math.round(estimationActuelle))})
+                              </Button>
+                            </div>
+                          ) : ecartPrix !== null ? (
+                            <p className="mt-1 font-medium text-emerald-700">Prix cohérent (écart de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} %).</p>
+                          ) : (
+                            !form.prix_reel && (
+                              <Button type="button" taille="sm" variante="secondaire" icon={Check} className="mt-1.5" onClick={utiliserPrixPropose}>
+                                Utiliser ce prix
+                              </Button>
+                            )
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </fieldset>
 
-                {/* Section 4 : pièces justificatives (obligatoires) */}
+                {/* Section 4 : position réelle de la parcelle */}
+                <fieldset>
+                  <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-marine-800">
+                    <IconeCarte className="size-4" aria-hidden /> Localisation de la parcelle
+                  </legend>
+                  <p className="mb-3 text-xs text-slate-500">
+                    Placez la parcelle sur l'image satellite, ou tenez-vous sur le terrain et touchez « Ma position GPS ».
+                    Tracez si possible le contour (les bornes) : les acheteurs et l'administrateur verront la parcelle exacte.
+                  </p>
+                  <SelecteurPosition valeur={position} onChange={setPosition} superficieDeclaree={superficieM2} />
+                </fieldset>
+
+                {/* Section 5 : pièces justificatives (obligatoires) */}
                 <fieldset>
                   <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-marine-800">
                     <FolderOpen className="size-4" aria-hidden /> Pièces justificatives
@@ -315,8 +458,10 @@ export default function Parcelles() {
 
                 {/* Boutons du formulaire */}
                 <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+                  {!aPosition(position) && <span className="mr-auto self-center text-xs text-amber-700">Parcelle non localisée (vous pourrez l'ajouter plus tard).</span>}
                   <Button type="button" variante="secondaire" onClick={() => setAfficherFormulaire(false)}>Annuler</Button>
-                  <Button type="submit" icon={Save} chargement={envoi}>Enregistrer la parcelle</Button>
+                  <Button type="submit" icon={Save} chargement={envoi} disabled={prixRefuse}
+                    title={prixRefuse ? "Le prix doit rester à moins de 10 % de l'estimation" : undefined}>Enregistrer la parcelle</Button>
                 </div>
               </form>
             </Card>
@@ -354,11 +499,32 @@ export default function Parcelles() {
               <option value="rejetee">Rejetées</option>
             </select>
           )}
+          {/* Bascule tableau / carte d'ensemble */}
+          <div className="inline-flex shrink-0 rounded-lg border border-slate-300 bg-white p-0.5 text-sm" role="group" aria-label="Affichage">
+            {[["liste", List, "Liste"], ["carte", IconeCarte, "Carte"]].map(([v, Icone, l]) => (
+              <button key={v} onClick={() => setAffichage(v)} aria-pressed={affichage === v}
+                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 font-medium ${affichage === v ? "bg-marine-700 text-white" : "text-slate-600"}`}>
+                <Icone className="size-4" aria-hidden /> {l}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Chargement, liste vide ou tableau */}
         {loading ? (
           <Chargement texte="Chargement des parcelles..." />
+        ) : affichage === "carte" ? (
+          <div>
+            <CarteParcelles parcelles={parcellesFiltrees} onChoisir={setCarte} />
+            <p className="flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
+              <span>{parcellesFiltrees.filter(aPosition).length} parcelle(s) localisée(s) sur {parcellesFiltrees.length}</span>
+              <span><b className="text-emerald-600">■</b> Vérifiée</span>
+              <span><b className="text-amber-600">■</b> À vérifier</span>
+              <span><b className="text-red-600">■</b> Rejetée</span>
+              <span><b className="text-slate-500">■</b> Vendue</span>
+              <span>Cliquez sur une parcelle pour l'ouvrir.</span>
+            </p>
+          </div>
         ) : parcellesFiltrees.length === 0 ? (
           <EmptyState
             icon={LandPlot}
@@ -390,7 +556,10 @@ export default function Parcelles() {
                   <tr key={p.id} className="transition hover:bg-marine-50/50">
                     {/* SU, lotissement et usage */}
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{p.su}</p>
+                      <p className="flex items-center gap-1 font-semibold text-slate-900">
+                        {p.su}
+                        {aPosition(p) && <MapPin className="size-3.5 text-emerald-600" aria-label="Parcelle localisée" />}
+                      </p>
                       <p className="text-xs text-slate-500">{capitaliser(p.zone)} · {USAGES[p.usage] || p.usage}</p>
                     </td>
                     {/* Superficie en m² et en ares/centiares */}
@@ -426,6 +595,13 @@ export default function Parcelles() {
                           </button>
                         </div>
                       ) : formatMontant(p.prix_reel)}
+                      {/* Prix refusé (écart > 10 %) : le système propose le prix estimé */}
+                      {p.id in prixEdition && propositions[p.id] && (
+                        <button onClick={() => { setPrixEdition({ ...prixEdition, [p.id]: String(propositions[p.id]) }); setPropositions((pr) => ({ ...pr, [p.id]: undefined })) }}
+                          className="mt-1 block w-full rounded-lg bg-marine-50 px-2 py-1 text-right text-xs font-semibold text-marine-700 ring-1 ring-marine-100 hover:bg-marine-100">
+                          Prix proposé : {formatMontant(propositions[p.id])} — appliquer
+                        </button>
+                      )}
                       {p.analyse_ia?.prix_suspect && (
                         <span className="mt-0.5 flex items-center justify-end gap-1 text-xs font-medium text-red-600" title="Prix jugé anormal par l'Isolation Forest">
                           <TriangleAlert className="size-3.5" aria-hidden /> Prix anormal
@@ -444,6 +620,9 @@ export default function Parcelles() {
                       <div className="flex flex-col items-start gap-1">
                         <StatutBadge statut={p.statut} />
                         <StatutBadge statut={p.verification} />
+                        {p.verification === "verifiee" && p.verifie_par && (
+                          <span className="text-[11px] text-slate-500">{p.verifie_par === "admin" ? "par l'administrateur" : "par le réseau de neurones"}</span>
+                        )}
                         {p.verification === "rejetee" && p.motif_rejet && (
                           <span className="max-w-48 text-xs text-red-600" title={p.motif_rejet}>{p.motif_rejet}</span>
                         )}
@@ -452,9 +631,12 @@ export default function Parcelles() {
                     {/* Acheteur : discuter du prix avec le vendeur */}
                     {!peutAjouter && (
                       <td className="px-4 py-3">
-                        <Button taille="sm" variante="secondaire" icon={MessagesSquare} chargement={actionEnCours === p.id} onClick={() => discuter(p)}>
-                          Discuter
-                        </Button>
+                        <div className="flex flex-wrap gap-1.5">
+                          {boutonCarte(p)}
+                          <Button taille="sm" variante="secondaire" icon={MessagesSquare} chargement={actionEnCours === p.id} onClick={() => discuter(p)}>
+                            Discuter
+                          </Button>
+                        </div>
                       </td>
                     )}
                     {/* Actions du propriétaire / de l'admin */}
@@ -466,6 +648,7 @@ export default function Parcelles() {
                             <Button taille="sm" variante="secondaire" icon={FolderOpen} onClick={() => setDossier(p)}>
                               Pièces ({p.nb_documents})
                             </Button>
+                            {boutonCarte(p)}
                             <span className="inline-flex items-center gap-1 text-xs text-slate-400" title="Vente validée et enregistrée sur la blockchain">
                               <Lock className="size-3.5" aria-hidden /> Définitive
                             </span>
@@ -481,6 +664,7 @@ export default function Parcelles() {
                             >
                               {role === "admin" && p.verification === "en_attente" ? "Vérifier" : "Pièces"} ({p.nb_documents})
                             </Button>
+                            {boutonCarte(p)}
                             {/* Basculer entre "disponible" et "en négociation" */}
                             {p.statut === "disponible" ? (
                               <Button
@@ -539,6 +723,15 @@ export default function Parcelles() {
       {/* Fenêtre du dossier d'une parcelle (pièces + vérification) ; la liste est rechargée après chaque changement */}
       {dossier && (
         <DossierParcelle parcelle={dossier} onClose={() => setDossier(null)} onChange={() => setVersion((v) => v + 1)} />
+      )}
+      {/* Fenêtre "Localisation" : satellite / plan ; le propriétaire (ou l'admin) peut corriger la position */}
+      {carte && (
+        <FenetreCarte
+          parcelle={carte}
+          peutModifier={peutAjouter && carte.statut !== "vendue"}
+          onEnregistrer={enregistrerPosition}
+          onClose={() => setCarte(null)}
+        />
       )}
     </Layout>
   )

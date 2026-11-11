@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-05",
+  "jeu_de_test": 102,
+  "architecture_reseau": {
+    "entrees": 8,
+    "couches_cachees": [
+      32,
+      16
+    ],
+    "activation": "relu",
+    "optimiseur": "adam",
+    "epoques": 200
+  },
+  "modeles": {
+    "regression_lineaire": {
+      "r2": 0.7448,
+      "mae": 49288.12,
+      "rmse": 74760.43
+    },
+    "random_forest": {
+      "r2": 0.9144,
+      "mae": 16645.13,
+      "rmse": 43286.92
+    },
+    "reseau_neurones": {
+      "r2": 0.9129,
+      "mae": 14788.41,
+      "rmse": 43686.26
+    },
+    "moyenne_3_modeles": {
+      "r2": 0.9367,
+      "mae": 21740.33,
+      "rmse": 37229.01
+    }
+  }
+}

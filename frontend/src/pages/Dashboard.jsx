@@ -2,11 +2,93 @@ import { useState, useEffect } from "react" // hooks React : état local et effe
 import { Link } from "react-router-dom" // liens vers les autres pages
 // Icônes de la bibliothèque lucide-react
 import {
-  LayoutDashboard, LandPlot, ArrowLeftRight, BrainCircuit, ShieldAlert, Users, ChevronRight, Clock,
+  LayoutDashboard, LandPlot, ArrowLeftRight, BrainCircuit, ShieldAlert, Users, ChevronRight, Clock, RefreshCw,
 } from "lucide-react"
 import Layout from "../components/Layout" // mise en page commune (barre latérale)
-import { Alert, StatCard } from "../components/ui" // composants d'interface
+import { Alert, Button, StatCard } from "../components/ui" // composants d'interface
 import api from "../api" // client HTTP vers le backend
+
+// Libellé et couleur du résultat d'un réentraînement
+const RESULTATS = {
+  adopte: { texte: "nouveau modèle adopté", cls: "text-emerald-700" },
+  rejete: { texte: "ancien modèle conservé (pas meilleur)", cls: "text-amber-700" },
+  ignore: { texte: "aucune nouvelle donnée", cls: "text-slate-500" },
+  erreur: { texte: "erreur", cls: "text-red-700" },
+}
+
+// Apprentissage continu : les modèles réapprennent avec les ventes validées et les dossiers tranchés
+function ApprentissageContinu() {
+  const [etat, setEtat] = useState(null)
+  const [message, setMessage] = useState("")
+  const [version, setVersion] = useState(0)
+
+  useEffect(() => {
+    api.get("/ia/apprentissage/").then((r) => setEtat(r.data)).catch(() => {})
+  }, [version])
+
+  // Pendant un réentraînement, l'état est relu toutes les 5 secondes
+  useEffect(() => {
+    if (!etat?.en_cours) return
+    const minuteur = setInterval(() => setVersion((v) => v + 1), 5000)
+    return () => clearInterval(minuteur)
+  }, [etat?.en_cours])
+
+  const lancer = async () => {
+    setMessage("")
+    try {
+      const r = await api.post("/ia/apprentissage/")
+      setMessage(r.data.message)
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Impossible de lancer le réentraînement.")
+    }
+    setVersion((v) => v + 1)
+  }
+
+  if (!etat) return null
+  const nouvelles = (etat.nouvelles_donnees?.ventes || 0) + (etat.nouvelles_donnees?.dossiers || 0)
+  const d = etat.dernier
+  const ligne = (titre, res, detail) => {
+    const r = RESULTATS[res?.statut] || RESULTATS.ignore
+    return (
+      <li className="flex flex-wrap justify-between gap-x-3 text-sm">
+        <span className="text-slate-600">{titre}</span>
+        <span className={`font-medium ${r.cls}`}>{r.texte}{res?.statut === "adopte" && detail ? ` — ${detail}` : ""}</span>
+      </li>
+    )
+  }
+  return (
+    <section className="mb-6 rounded-2xl border border-violet-200 bg-white/95 p-5 shadow-sm" aria-label="Apprentissage continu de l'IA">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="rounded-xl bg-violet-50 p-2.5 text-violet-700"><RefreshCw className={`size-5 ${etat.en_cours ? "animate-spin" : ""}`} aria-hidden /></div>
+          <div>
+            <h2 className="font-semibold text-slate-800">Apprentissage continu de l'IA</h2>
+            <p className="text-sm text-slate-500">
+              {etat.en_cours
+                ? "Réentraînement en cours…"
+                : `${nouvelles} nouvelle(s) donnée(s) réelle(s) sur ${etat.seuil} avant le prochain réentraînement automatique.`}
+            </p>
+            <p className="text-xs text-slate-400">
+              {etat.donnees_reelles.ventes} vente(s) validée(s) · {etat.donnees_reelles.dossiers} dossier(s) tranché(s)
+            </p>
+          </div>
+        </div>
+        <Button taille="sm" variante="secondaire" icon={RefreshCw} disabled={etat.en_cours} onClick={lancer}>Réentraîner maintenant</Button>
+      </div>
+      {d && (
+        <ul className="mt-4 space-y-1 border-t border-slate-100 pt-3">
+          <li className="text-xs text-slate-400">Dernier réentraînement : {new Date(d.date).toLocaleString("fr-FR")} ({d.declencheur}, {d.duree_s} s)</li>
+          {ligne("Modèles de prix et de fraude", d.prix,
+            d.prix?.comparaison && `R² ${d.prix.comparaison.random_forest.r2_avec_donnees_reelles.toLocaleString("fr-FR")}`
+            + (d.prix.zones_ajoutees?.length ? ` · nouveau(x) lotissement(s) : ${d.prix.zones_ajoutees.join(", ")}` : ""))}
+          {ligne("Réseau d'authentification", d.authentification,
+            d.authentification?.f1_avec_donnees_reelles != null && `F1 ${d.authentification.f1_avec_donnees_reelles.toLocaleString("fr-FR")}`)}
+        </ul>
+      )}
+      {message && <p className="mt-2 text-xs text-slate-600" role="status">{message}</p>}
+    </section>
+  )
+}
 
 // Page "Tableau de bord" (administrateur) : chiffres clés et accès rapides
 export default function Dashboard() {
@@ -82,6 +164,8 @@ export default function Dashboard() {
           </span>
         </Link>
       )}
+
+      <ApprentissageContinu />
 
       {/* Accès rapides */}
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Accès rapide</h2>

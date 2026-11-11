@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'; // hooks React : état local et effets
-import { Users, UserPlus, Wallet, Pencil, Check, X, TriangleAlert, Eye, EyeOff } from 'lucide-react'; // icônes
+import { Users, UserPlus, Wallet, Pencil, Check, X, TriangleAlert, Eye, EyeOff, Lock } from 'lucide-react'; // icônes
 import Layout from '../components/Layout'; // mise en page commune
 import { Alert, Button, Card, Chargement, EmptyState, Field, PageHeader } from '../components/ui'; // composants d'interface
 import api, { messageErreur } from '../api'; // client HTTP et fonction de message d'erreur
@@ -189,7 +189,13 @@ function Utilisateurs() {
                       </td>
                       {/* Adresse Ethereum : affichage, ou champ de saisie en mode édition */}
                       <td className="px-4 py-3">
-                        {u.id in edition ? (
+                        {u.adresse_verrouillee ? (
+                          // Adresse enregistrée dans le smart contract : plus modifiable
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1 font-mono text-xs text-slate-600"
+                            title={`${u.adresse_ethereum} — utilisée par une vente inscrite sur la blockchain : non modifiable`}>
+                            <Lock className="size-3.5 text-slate-400" aria-hidden /> {u.adresse_ethereum.slice(0, 8)}…{u.adresse_ethereum.slice(-4)}
+                          </span>
+                        ) : u.id in edition ? (
                           // Mode édition : Entrée pour enregistrer, Échap pour annuler
                           <div className="flex items-center gap-1">
                             <input

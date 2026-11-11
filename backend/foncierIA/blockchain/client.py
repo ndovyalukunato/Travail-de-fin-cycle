@@ -67,6 +67,43 @@ class BlockchainClient:
     def get_transaction(self, transaction_id):
         return self.contract.functions.getTransaction(transaction_id).call()
 
+    def lire_registre(self):
+        """
+        Lit TOUT le registre directement dans le contrat (lecture seule, aucun gas,
+        aucune écriture). Les données viennent de la blockchain et non de la base
+        Django : l'administrateur voit ce qui est réellement inscrit, sans pouvoir le modifier.
+        """
+        # Journaux de l'événement TransactionEnregistree : donnent le hash et le bloc de chaque vente
+        journaux = self.contract.events.TransactionEnregistree.get_logs(from_block=0)
+        preuves = {
+            j["args"]["id"]: {
+                "tx_hash": Web3.to_hex(j["transactionHash"]),
+                "bloc": j["blockNumber"],
+            }
+            for j in journaux
+        }
+
+        nombre = self.contract.functions.nombreTransactions().call()  # compteur du contrat
+        registre = []
+        for i in range(1, nombre + 1):
+            # Ordre des champs de la structure : id, parcelleSu, acheteur, vendeur, montant, timestamp, valide
+            t = self.contract.functions.getTransaction(i).call()
+            registre.append({
+                "id": t[0],
+                "parcelle_su": t[1],
+                "acheteur": t[2],
+                "vendeur": t[3],
+                "montant": t[4] / 10**18,  # wei -> dollars (1 $ a été codé comme 1 ether)
+                "timestamp": t[5],
+                "valide": t[6],
+                **preuves.get(t[0], {"tx_hash": None, "bloc": None}),
+            })
+        return {
+            "contrat": self.contract.address,
+            "bloc_actuel": self.w3.eth.block_number,
+            "transactions": registre,
+        }
+
 
 def etat_blockchain():
     """

@@ -19,6 +19,14 @@ class UtilisateurViewSet(viewsets.ModelViewSet):
     serializer_class = UtilisateurSerializer  # serializer utilisé pour le JSON
     permission_classes = [IsAuthenticated, EstAdmin]  # connecté ET administrateur
 
+    # Supprimer le compte effacerait ses transactions (CASCADE), dont celles inscrites sur la blockchain
+    def perform_destroy(self, instance):
+        from rest_framework.exceptions import ValidationError
+        from .serializers import a_vente_blockchain
+        if a_vente_blockchain(instance):
+            raise ValidationError({'erreur': "Ce compte a une vente inscrite sur la blockchain : il ne peut pas être supprimé."})
+        instance.delete()
+
 
 # GET /api/profil/ : informations de l'utilisateur connecté
 @api_view(['GET'])

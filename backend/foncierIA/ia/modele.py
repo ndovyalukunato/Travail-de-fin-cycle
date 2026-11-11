@@ -1,3 +1,4 @@
+import json  # lecture des performances des modèles
 import os  # construction des chemins vers les fichiers .pkl
 import joblib  # chargement des modèles scikit-learn sauvegardés
 import pandas as pd  # tableaux de données passés aux modèles
@@ -10,6 +11,9 @@ import pandas as pd  # tableaux de données passés aux modèles
 #   - modele_rf.pkl       : Random Forest         (superficie, zone_encoded, infrastructure)
 #   - modele_fraude.pkl   : Isolation Forest      (SUPERFICIE_M2, zone_encoded, infrastructure, PRIX-VENTE)
 #   - label_encoder.pkl   : encodeur des lotissements
+# et par ia/entrainer_reseau_neurones.py :
+#   - modele_rn.pkl       : Réseau de neurones (perceptron multicouche 32-16, scikit-learn MLPRegressor)
+#   - metriques.json      : performances des trois modèles sur le même jeu de test
 
 # Dossier où se trouve ce fichier (et les fichiers .pkl)
 DOSSIER_MODELES = os.path.dirname(os.path.abspath(__file__))
@@ -19,9 +23,34 @@ modele_lr = joblib.load(os.path.join(DOSSIER_MODELES, "modele_lr.pkl"))  # Régr
 modele_rf = joblib.load(os.path.join(DOSSIER_MODELES, "modele_rf.pkl"))  # Random Forest
 modele_fraude = joblib.load(os.path.join(DOSSIER_MODELES, "modele_fraude.pkl"))  # Isolation Forest
 le = joblib.load(os.path.join(DOSSIER_MODELES, "label_encoder.pkl"))  # transforme un nom de zone en nombre
+modele_rn = joblib.load(os.path.join(DOSSIER_MODELES, "modele_rn.pkl"))  # Réseau de neurones
+
+
+def lire_metriques():
+    """Performances (R², MAE, RMSE) mesurées lors du dernier entraînement du réseau."""
+    try:
+        with open(os.path.join(DOSSIER_MODELES, "metriques.json"), encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
 
 # Zones connues par l'encodeur (les lotissements de Goma utilisés à l'entraînement)
 ZONES_CONNUES = [str(z) for z in le.classes_]
+
+
+def recharger():
+    """
+    Relit les modèles sur le disque après un apprentissage continu (ia/apprentissage_continu.py) :
+    les nouvelles versions servent aussitôt, sans redémarrer le serveur.
+    ZONES_CONNUES est modifiée sur place car d'autres modules l'ont importée.
+    """
+    global modele_lr, modele_rf, modele_fraude, le, modele_rn
+    modele_lr = joblib.load(os.path.join(DOSSIER_MODELES, "modele_lr.pkl"))
+    modele_rf = joblib.load(os.path.join(DOSSIER_MODELES, "modele_rf.pkl"))
+    modele_fraude = joblib.load(os.path.join(DOSSIER_MODELES, "modele_fraude.pkl"))
+    le = joblib.load(os.path.join(DOSSIER_MODELES, "label_encoder.pkl"))
+    modele_rn = joblib.load(os.path.join(DOSSIER_MODELES, "modele_rn.pkl"))
+    ZONES_CONNUES[:] = [str(z) for z in le.classes_]
 
 # Mêmes noms de colonnes qu'à l'entraînement (évite les avertissements sklearn)
 COLONNES_PRIX = ["superficie", "zone_encoded", "infrastructure"]  # entrées des modèles de prix
@@ -66,7 +95,9 @@ def _encoder_zone(zone):
 # ============================================
 def estimer_prix(superficie, zone, infrastructure):
     """
-    Estime le prix d'une parcelle par Régression Linéaire et Random Forest.
+    Estime le prix d'une parcelle avec trois modèles : Régression Linéaire,
+    Random Forest et Réseau de neurones. Le prix retenu est leur moyenne
+    (meilleur R² sur le jeu de test : voir metriques.json).
     'superficie' est en m², 'zone' doit être un des lotissements connus
     (voir ZONES_CONNUES), insensible à la casse.
     """
@@ -78,12 +109,14 @@ def estimer_prix(superficie, zone, infrastructure):
 
     prix_lr = float(modele_lr.predict(entree)[0])  # prédiction de la Régression Linéaire
     prix_rf = float(modele_rf.predict(entree)[0])  # prédiction du Random Forest
+    prix_rn = float(modele_rn.predict(entree)[0])  # prédiction du Réseau de neurones
 
-    # Les deux prédictions et leur moyenne (le prix retenu), arrondies au centime
+    # Les trois prédictions et leur moyenne (le prix retenu), arrondies au centime
     return {
         'regression_lineaire': round(prix_lr, 2),
         'random_forest': round(prix_rf, 2),
-        'moyenne': round((prix_lr + prix_rf) / 2, 2),
+        'reseau_neurones': round(prix_rn, 2),
+        'moyenne': round((prix_lr + prix_rf + prix_rn) / 3, 2),
     }
 
 
@@ -137,4 +170,22 @@ def analyser_parcelle(parcelle, prix=None):
         'prix_controle': prix_a_controler,
         'estimation': estimation,
         'fraude': fraude,
+    }
+
+
+def controler_prix(superficie, zone, infrastructure, prix, ecart_max=0.10):
+    """
+    Compare le prix réel déclaré au prix estimé (moyenne des 3 modèles).
+    Le prix est accepté s'il reste dans la fourchette estimation ± ecart_max (10 % par défaut).
+    Lève ValueError si la zone est inconnue du modèle (aucune estimation possible).
+    """
+    estime = estimer_prix(superficie, zone, infrastructure)['moyenne']
+    prix_min, prix_max = estime * (1 - ecart_max), estime * (1 + ecart_max)
+    ecart = (float(prix) - estime) / estime if estime else 0  # positif = plus cher que l'estimation
+    return {
+        'prix_estime': round(estime, 2),
+        'prix_min': round(prix_min, 2),
+        'prix_max': round(prix_max, 2),
+        'ecart': round(ecart * 100, 1),  # en %
+        'accepte': prix_min <= float(prix) <= prix_max,
     }

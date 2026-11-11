@@ -1,0 +1,5 @@
+2026/11/05-23:01:42.063 df0 Recovering log #35
+2026/11/05-23:01:42.064 df0 Level-0 table #37: started
+2026/11/05-23:01:42.290 df0 Level-0 table #37: 19848 bytes OK
+2026/11/05-23:01:42.556 df0 Delete type=0 #35
+2026/11/05-23:01:42.556 df0 Delete type=3 #33

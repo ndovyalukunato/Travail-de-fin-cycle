@@ -2,7 +2,7 @@ import { useEffect, useState } from "react" // hooks React : effets et état loc
 import { NavLink, useNavigate } from "react-router-dom" // liens de navigation et redirection
 // Icônes de la bibliothèque lucide-react
 import {
-  LayoutDashboard, LandPlot, BrainCircuit, ArrowLeftRight, History, Users, LogOut, Menu, X, MessagesSquare,
+  LayoutDashboard, LandPlot, BrainCircuit, ArrowLeftRight, History, Users, LogOut, Menu, X, MessagesSquare, Blocks, BookMarked,
 } from "lucide-react"
 import armoiries from "../assets/armoiries.png" // armoiries de la RDC (fond transparent)
 import api from "../api" // client HTTP (nombre de messages non lus)
@@ -41,6 +41,8 @@ export default function Layout({ titre, children }) {
     { to: "/transactions", label: "Transactions", icon: ArrowLeftRight },
     { to: "/messages", label: "Messages", icon: MessagesSquare, pastille: nonLus },
     { to: "/historique", label: "Historique", icon: History },
+    { to: "/titres", label: "Registre des titres", icon: BookMarked, roles: ["admin"] },
+    { to: "/registre", label: "Registre blockchain", icon: Blocks, roles: ["admin"] },
     { to: "/utilisateurs", label: "Utilisateurs", icon: Users, roles: ["admin"] },
   ].filter((l) => !l.roles || l.roles.includes(role)) // garde seulement les liens autorisés
 

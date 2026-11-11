@@ -48,4 +48,11 @@ export const formatMontant = (m) =>
 // Met une majuscule au début de chaque mot : "lac-vert" -> "Lac-Vert"
 export const capitaliser = (z = "") => z.replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())
 
+// Télécharge un fichier protégé (le token JWT est envoyé) et renvoie une adresse locale
+// utilisable dans <img src> ou window.open (à libérer avec URL.revokeObjectURL)
+export async function urlFichier(chemin) {
+  const res = await api.get(chemin, { responseType: "blob" })
+  return URL.createObjectURL(res.data)
+}
+
 export default api

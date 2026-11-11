@@ -2,6 +2,14 @@ from rest_framework import serializers  # conversion objets Python <-> JSON
 from .models import Utilisateur  # modèle à convertir
 
 
+def a_vente_blockchain(utilisateur):
+    """L'utilisateur est acheteur ou vendeur d'une vente enregistrée dans le smart contract."""
+    from transactions.models import Transaction  # import local : évite une importation circulaire
+    from django.db.models import Q
+    return Transaction.objects.filter(Q(acheteur=utilisateur) | Q(vendeur=utilisateur)) \
+        .exclude(hash_blockchain__isnull=True).exclude(hash_blockchain='').exists()
+
+
 # Transforme un Utilisateur en JSON pour l'API (et valide les données reçues)
 class UtilisateurSerializer(serializers.ModelSerializer):
     # Mot de passe : accepté en entrée mais JAMAIS renvoyé dans les réponses (write_only)
@@ -12,17 +20,30 @@ class UtilisateurSerializer(serializers.ModelSerializer):
         error_messages={'invalid': "Adresse Ethereum invalide (format 0x suivi de 40 caractères hexadécimaux)."},
     )
 
+    # True si l'utilisateur a une vente inscrite sur la blockchain : son adresse est alors figée
+    adresse_verrouillee = serializers.SerializerMethodField()
+
+    def get_adresse_verrouillee(self, obj):
+        return a_vente_blockchain(obj)
+
     # Validation globale des données reçues
     def validate(self, data):
         # À la création (pas d'instance existante), le mot de passe est obligatoire
         if self.instance is None and not data.get('mot_de_passe'):
             raise serializers.ValidationError({'mot_de_passe': 'Ce champ est obligatoire.'})
+        # L'adresse Ethereum figure dans le smart contract pour chaque vente validée : on ne peut plus la changer
+        if (self.instance is not None and 'adresse_ethereum' in data
+                and (data['adresse_ethereum'] or None) != (self.instance.adresse_ethereum or None)
+                and a_vente_blockchain(self.instance)):
+            raise serializers.ValidationError({'erreur': (
+                "Cet utilisateur a une vente inscrite sur la blockchain avec cette adresse Ethereum : "
+                "elle ne peut plus être modifiée.")})
         return data
 
     class Meta:
         model = Utilisateur  # modèle concerné
         # Champs inclus dans le JSON
-        fields = ['id', 'nom', 'email', 'mot_de_passe', 'role', 'adresse_ethereum', 'created_at']
+        fields = ['id', 'nom', 'email', 'mot_de_passe', 'role', 'adresse_ethereum', 'adresse_verrouillee', 'created_at']
         read_only_fields = ['id', 'created_at']  # attribués automatiquement
 
     # Création d'un compte (POST /api/utilisateurs/)

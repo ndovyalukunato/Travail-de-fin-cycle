@@ -2,7 +2,7 @@ import { useState, useEffect } from "react" // hooks React : état local et effe
 import { motion } from "framer-motion" // animations
 // Icônes de la bibliothèque lucide-react
 import {
-  BrainCircuit, Calculator, LandPlot, SlidersHorizontal, TrendingUp, Trees, ShieldCheck, ShieldAlert, Sparkles,
+  BrainCircuit, Calculator, LandPlot, SlidersHorizontal, TrendingUp, Trees, ShieldCheck, ShieldAlert, Sparkles, Network, Gauge,
 } from "lucide-react"
 import Layout from "../components/Layout" // mise en page commune
 import { Alert, Button, Card, EmptyState, Field, PageHeader } from "../components/ui" // composants d'interface
@@ -22,11 +22,13 @@ export default function Estimation() {
   const [resultat, setResultat] = useState(null) // réponse du modèle IA
   const [erreur, setErreur] = useState("") // message d'erreur
   const [loading, setLoading] = useState(false) // calcul en cours
+  const [metriques, setMetriques] = useState(null) // performances des modèles sur le jeu de test
 
   // Au chargement de la page : récupère les zones et les parcelles
   useEffect(() => {
     api.get("/zones/").then((res) => setZones(res.data)).catch(() => {})
     api.get("/parcelles/").then((res) => setParcelles(res.data)).catch(() => {})
+    api.get("/ia/metriques/").then((res) => setMetriques(res.data)).catch(() => {})
   }, [])
 
   // Met à jour le champ modifié du formulaire "libre" (grâce à son attribut name)
@@ -87,7 +89,7 @@ export default function Estimation() {
       <PageHeader
         icon={BrainCircuit}
         titre="Estimation IA du prix"
-        description="Régression linéaire et Random Forest pour le prix ; Isolation Forest pour détecter un prix anormal."
+        description="Régression linéaire, Random Forest et réseau de neurones pour le prix ; Isolation Forest pour détecter un prix anormal."
       />
 
       {/* Deux colonnes sur grand écran : formulaire (2/5) et résultats (3/5) */}
@@ -195,14 +197,14 @@ export default function Estimation() {
                   {resultat.parcelle_id && " — estimation enregistrée sur la parcelle"}
                 </p>
 
-                {/* Prix retenu : moyenne des deux modèles */}
+                {/* Prix retenu : moyenne des trois modèles */}
                 <div className="mb-4 rounded-xl bg-gradient-to-br from-marine-700 to-marine-900 p-5 text-white">
-                  <p className="text-sm text-marine-100">Prix moyen estimé</p>
+                  <p className="text-sm text-marine-100">Prix moyen estimé (moyenne des 3 modèles)</p>
                   <p className="text-3xl font-bold">{formatMontant(resultat.estimation.moyenne)}</p>
                 </div>
 
-                {/* Détail des deux modèles */}
-                <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {/* Détail des trois modèles */}
+                <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className="rounded-xl border border-slate-200 p-4">
                     <p className="flex items-center gap-1.5 text-sm text-slate-500">
                       <TrendingUp className="size-4 text-marine-600" aria-hidden /> Régression linéaire
@@ -214,6 +216,12 @@ export default function Estimation() {
                       <Trees className="size-4 text-emerald-600" aria-hidden /> Random Forest
                     </p>
                     <p className="mt-1 text-xl font-bold text-slate-900">{formatMontant(resultat.estimation.random_forest)}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 p-4">
+                    <p className="flex items-center gap-1.5 text-sm text-slate-500">
+                      <Network className="size-4 text-violet-600" aria-hidden /> Réseau de neurones
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-slate-900">{formatMontant(resultat.estimation.reseau_neurones)}</p>
                   </div>
                 </div>
 
@@ -239,6 +247,40 @@ export default function Estimation() {
                 </div>
               </Card>
             </motion.div>
+          )}
+
+          {/* Performances des modèles, mesurées sur des parcelles jamais vues à l'entraînement */}
+          {metriques?.modeles && Object.keys(metriques.modeles).length > 0 && (
+            <Card titre="Fiabilité des modèles" icon={Gauge} className="mt-6" padding={false}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th scope="col" className="px-4 py-2.5 font-semibold">Modèle</th>
+                      <th scope="col" className="px-4 py-2.5 text-right font-semibold">R²</th>
+                      <th scope="col" className="px-4 py-2.5 text-right font-semibold">Erreur moyenne (MAE)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {[["regression_lineaire", "Régression linéaire"], ["random_forest", "Random Forest"],
+                      ["reseau_neurones", "Réseau de neurones"], ["moyenne_3_modeles", "Moyenne des 3 (prix retenu)"]]
+                      .filter(([cle]) => metriques.modeles[cle])
+                      .map(([cle, nom]) => (
+                        <tr key={cle} className={cle === "moyenne_3_modeles" ? "bg-marine-50/60 font-semibold" : ""}>
+                          <td className="px-4 py-2.5">{nom}</td>
+                          <td className="px-4 py-2.5 text-right">{metriques.modeles[cle].r2.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</td>
+                          <td className="px-4 py-2.5 text-right">{formatMontant(metriques.modeles[cle].mae)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
+                Mesuré sur {metriques.jeu_de_test} parcelles de test. Réseau : {metriques.architecture_reseau?.entrees} entrées →{" "}
+                {metriques.architecture_reseau?.couches_cachees?.join(" → ")} neurones ({metriques.architecture_reseau?.activation}) → 1 sortie.
+                R² proche de 1 = prédictions fidèles.
+              </p>
+            </Card>
           )}
         </div>
       </div>

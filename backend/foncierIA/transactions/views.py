@@ -1,11 +1,14 @@
 from django.db import transaction as db_transaction  # regroupe plusieurs écritures en base (tout ou rien)
 from rest_framework import viewsets, permissions  # ViewSets et permissions DRF
-from rest_framework.decorators import api_view  # transforme une fonction en vue d'API
+from rest_framework.decorators import api_view, permission_classes  # vues-fonctions d'API et leurs permissions
 from rest_framework.exceptions import PermissionDenied, ValidationError, APIException  # erreurs 403, 400 et personnalisées
 from rest_framework.response import Response  # réponse JSON
 from .models import Transaction  # modèle des transactions
 from .serializers import TransactionSerializer  # conversion Transaction <-> JSON
 from blockchain.client import get_blockchain_client, etat_blockchain  # accès à Ganache
+from utilisateurs.models import Utilisateur  # noms des acheteurs / vendeurs du registre
+from utilisateurs.permissions import EstAdmin  # registre blockchain réservé à l'admin
+from parcelles.models import Parcelle  # lotissement de chaque parcelle du registre
 
 
 # Erreur 503 renvoyée quand la blockchain ne répond pas
@@ -179,6 +182,67 @@ class TransactionViewSet(viewsets.ModelViewSet):
             # Les autres offres encore ouvertes sur cette parcelle sont annulées
             Transaction.objects.filter(parcelle=parcelle, statut__in=STATUTS_OUVERTS) \
                 .exclude(id=transaction.id).update(statut='annulée')
+
+        # Nouvelle vente réelle : les modèles de prix réapprennent dès que le seuil est atteint
+        from ia.apprentissage_continu import declencher_si_necessaire
+        declencher_si_necessaire('vente validée')
+
+
+# GET /api/blockchain/registre/ : registre complet lu sur la blockchain (admin, lecture seule)
+@api_view(['GET'])  # uniquement GET : aucune route ne permet de modifier le registre
+@permission_classes([EstAdmin])
+def registre_blockchain(request):
+    """
+    Toutes les ventes inscrites dans le contrat FoncierAI, regroupées par parcelle.
+    Chaque vente garde son numéro global (n° dans le contrat) et reçoit son
+    numéro propre à la parcelle (1re vente, 2e vente...).
+    """
+    etat = etat_blockchain()
+    if not etat['disponible']:
+        raise BlockchainIndisponible(etat['message'])
+    try:
+        registre = get_blockchain_client().lire_registre()
+    except Exception as e:
+        raise BlockchainIndisponible(f"Lecture de la blockchain impossible : {e}")
+
+    # Noms lisibles : adresse Ethereum -> nom de l'utilisateur ; SU -> lotissement
+    noms = {
+        u.adresse_ethereum.lower(): u.nom
+        for u in Utilisateur.objects.exclude(adresse_ethereum__isnull=True).exclude(adresse_ethereum='')
+    }
+    zones = dict(Parcelle.objects.values_list('su', 'zone'))
+
+    parcelles = {}  # su -> fiche de la parcelle
+    for t in registre['transactions']:  # déjà triées par numéro (ordre chronologique)
+        su = t['parcelle_su']
+        t['acheteur_nom'] = noms.get(t['acheteur'].lower(), '')
+        t['vendeur_nom'] = noms.get(t['vendeur'].lower(), '')
+        t['zone'] = zones.get(su, '')
+        fiche = parcelles.setdefault(su, {'su': su, 'zone': t['zone'], 'historique': []})
+        t['numero_parcelle'] = len(fiche['historique']) + 1  # numéro propre à la parcelle
+        precedent = fiche['historique'][-1]['montant'] if fiche['historique'] else None
+        # Variation par rapport à la vente précédente de la même parcelle (comme un cours de bourse)
+        t['variation'] = round((t['montant'] - precedent) / precedent * 100, 2) if precedent else None
+        fiche['historique'].append(t)
+
+    for fiche in parcelles.values():
+        h = fiche['historique']
+        fiche['nombre_ventes'] = len(h)
+        fiche['premier_montant'] = h[0]['montant']
+        fiche['dernier_montant'] = h[-1]['montant']
+        fiche['variation_totale'] = (
+            round((h[-1]['montant'] - h[0]['montant']) / h[0]['montant'] * 100, 2) if len(h) > 1 else None
+        )
+        fiche['proprietaire_actuel'] = h[-1]['acheteur_nom'] or h[-1]['acheteur']
+
+    return Response({
+        'contrat': registre['contrat'],
+        'bloc_actuel': registre['bloc_actuel'],
+        'nombre_transactions': len(registre['transactions']),
+        'volume_total': sum(t['montant'] for t in registre['transactions']),
+        'transactions': registre['transactions'],
+        'parcelles': sorted(parcelles.values(), key=lambda p: p['su']),
+    })
 
 
 # GET /api/blockchain/statut/ : permet au frontend de savoir si Ganache est prêt

@@ -9,6 +9,8 @@ import Utilisateurs from "./pages/Utilisateurs"
 import Transactions from "./pages/Transactions"
 import Historique from "./pages/Historique"
 import Messages from "./pages/Messages"
+import Registre from "./pages/Registre"
+import Titres from "./pages/Titres"
 
 // Redirige vers la connexion si pas de token, ou si le rôle n'est pas autorisé
 function Protegee({ roles, children }) {
@@ -35,6 +37,10 @@ export default function App() {
         <Route path="/utilisateurs" element={<Protegee roles={["admin"]}><Utilisateurs /></Protegee>} />
         <Route path="/transactions" element={<Protegee><Transactions /></Protegee>} />
         <Route path="/historique" element={<Protegee><Historique /></Protegee>} />
+        {/* Registre blockchain : administrateur uniquement, lecture seule */}
+        <Route path="/registre" element={<Protegee roles={["admin"]}><Registre /></Protegee>} />
+        {/* Registre officiel des titres (table "documents") : administrateur uniquement */}
+        <Route path="/titres" element={<Protegee roles={["admin"]}><Titres /></Protegee>} />
         {/* Discussions acheteur <-> vendeur */}
         <Route path="/messages" element={<Protegee><Messages /></Protegee>} />
         {/* Toute autre adresse renvoie vers la connexion */}

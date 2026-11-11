@@ -188,3 +188,20 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),  # token d'accès : 2 heures
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # token de renouvellement : 1 jour
 }
+
+# Authentification des dossiers par le réseau de neurones (lancée par l'admin uniquement) :
+# probabilité >= SEUIL_AUTHENTIQUE -> parcelle vérifiée par l'IA ;
+# probabilité <  SEUIL_FALSIFIE    -> rejet recommandé ; entre les deux -> examen par l'admin.
+SEUIL_AUTHENTIQUE = 0.80
+SEUIL_FALSIFIE = 0.40
+
+# Apprentissage continu (ia/apprentissage_continu.py) : les modèles réapprennent en arrière-plan
+# dès que APPRENTISSAGE_SEUIL nouvelles données réelles (ventes validées, dossiers tranchés) existent.
+# Désactivé pendant les tests pour ne jamais remplacer les vrais modèles.
+import sys as _sys
+APPRENTISSAGE_AUTOMATIQUE = 'test' not in _sys.argv
+APPRENTISSAGE_SEUIL = 5
+
+# Écart maximal admis entre le prix réel déclaré par le vendeur et le prix estimé par l'IA
+# (moyenne des 3 modèles). Au-delà, le système refuse le prix et propose le prix estimé.
+ECART_PRIX_MAX = 0.10  # 10 %

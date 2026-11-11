@@ -1,0 +1,167 @@
+[
+{
+ "model": "utilisateurs.utilisateur",
+ "pk": 1,
+ "fields": {
+  "nom": "Josue Lukunato",
+  "email": "josue@gmail.com",
+  "mot_de_passe": "pbkdf2_sha256$600000$iyPSnim7NvCbuImHapzHtA$6H97N775fCfllk9nnGpBIftztTCx+9XU0MwLkdRv5NU=",
+  "role": "admin",
+  "adresse_ethereum": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
+  "created_at": "2026-08-14T21:15:18.397Z"
+ }
+},
+{
+ "model": "utilisateurs.utilisateur",
+ "pk": 2,
+ "fields": {
+  "nom": "Gloria",
+  "email": "gloria@gmail.com",
+  "mot_de_passe": "pbkdf2_sha256$600000$XkpdIfN5XixLSfdoARLJWL$+a9fBj09ljO9VITuDFLn2C/PbJvPQzpeJIYRASDPOhk=",
+  "role": "vendeur",
+  "adresse_ethereum": "0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0",
+  "created_at": "2026-08-14T21:22:23.606Z"
+ }
+},
+{
+ "model": "utilisateurs.utilisateur",
+ "pk": 3,
+ "fields": {
+  "nom": "luc",
+  "email": "luc@gmail.com",
+  "mot_de_passe": "pbkdf2_sha256$600000$pRAfDSf2WQu9QnyLz5W07w$MbnrsvZs+1216uBEH81gGw6uxBjJKQKNib7TjuarVzg=",
+  "role": "acheteur",
+  "adresse_ethereum": "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b",
+  "created_at": "2026-08-16T03:15:05.643Z"
+ }
+},
+{
+ "model": "parcelles.parcelle",
+ "pk": 17,
+ "fields": {
+  "su": "20386",
+  "superficie_ha": 0,
+  "superficie_ares": 1,
+  "superficie_ca": 20,
+  "superficie_pourcent": 6,
+  "zone": "katindo",
+  "usage": "commercial",
+  "nature": "certificat d'enregistrement",
+  "prix_reel": "9000.00",
+  "prix_estime": "8489.50",
+  "statut": "disponible",
+  "titre_foncier": "je fais l offre de ma parcelle",
+  "hash_blockchain": null,
+  "proprietaire": 2,
+  "verification": "verifiee",
+  "motif_rejet": "",
+  "verifie_par": "admin",
+  "rapport_verification": {
+   "resultat": "introuvable",
+   "message": "Aucun document du registre officiel ne correspond à ce SU ou à ce numéro de titre : vérification manuelle par l'administrateur.",
+   "document": null,
+   "controles": [],
+   "score": 0,
+   "date": "2026-11-06T08:31:43"
+  },
+  "latitude": "-1.672126",
+  "longitude": "29.212545",
+  "precision_gps": null,
+  "contour": null,
+  "created_at": "2026-11-06T06:31:42.849Z"
+ }
+},
+{
+ "model": "parcelles.documentparcelle",
+ "pk": 16,
+ "fields": {
+  "parcelle": 17,
+  "fichier": "parcelles/17/parcelle1.mp4",
+  "type": "video",
+  "nom": "parcelle1.mp4",
+  "created_at": "2026-11-06T06:31:43.015Z"
+ }
+},
+{
+ "model": "parcelles.documentparcelle",
+ "pk": 17,
+ "fields": {
+  "parcelle": 17,
+  "fichier": "parcelles/17/dc.jpeg",
+  "type": "photo",
+  "nom": "dc.jpeg",
+  "created_at": "2026-11-06T06:31:43.027Z"
+ }
+},
+{
+ "model": "parcelles.documentofficiel",
+ "pk": 2,
+ "fields": {
+  "numero": "Vol. G1/98 Folio 194",
+  "type_document": "certificat",
+  "su": "SU 27.598",
+  "titulaire": "KASEREKA MUHINDO Jules",
+  "zone": "katindo",
+  "superficie_m2": "286.50",
+  "volume": "G1/98",
+  "folio": "194",
+  "date_delivrance": "2024-05-14",
+  "bureau": "Conservation des titres immobiliers de Goma (Conservateur a.i : KAKULE KAISIRIRYA Damson)",
+  "latitude": null,
+  "longitude": null,
+  "pv_bornage": "6214/2024",
+  "scan": "registre/certificat_SU_27598.jpeg",
+  "statut": "valide",
+  "observations": "Concession perpétuelle, usage résidentiel. Contrat du 14/05/2024, registre journal n° d'ordre général 47.004 et spécial GOM/RCP 15.842. Croquis au 1/1000 : Avenue Madiata, voisins SU 27.537, 27.539 et 59.291.",
+  "enregistre_par": null,
+  "created_at": "2026-11-05T21:43:08.368Z",
+  "updated_at": "2026-11-05T21:43:08.400Z"
+ }
+},
+{
+ "model": "estimations.estimation",
+ "pk": 24,
+ "fields": {
+  "parcelle": 17,
+  "superficie": 120.06,
+  "zone": "katindo",
+  "prix_predit": "8489.50",
+  "created_at": "2026-11-06T06:31:43.279Z"
+ }
+},
+{
+ "model": "messagerie.conversation",
+ "pk": 3,
+ "fields": {
+  "parcelle": 17,
+  "acheteur": 3,
+  "vendeur": 2,
+  "created_at": "2026-11-06T06:36:10.557Z",
+  "updated_at": "2026-11-06T06:38:33.489Z"
+ }
+},
+{
+ "model": "messagerie.message",
+ "pk": 5,
+ "fields": {
+  "conversation": 3,
+  "auteur": 3,
+  "contenu": "bonjour, nime parcelle yako na niko na 7000 est ce que c possible tu malizane leo",
+  "prix_propose": null,
+  "lu": true,
+  "created_at": "2026-11-06T06:37:05.548Z"
+ }
+},
+{
+ "model": "messagerie.message",
+ "pk": 6,
+ "fields": {
+  "conversation": 3,
+  "auteur": 2,
+  "contenu": "apana iyi parcelle aumoins 85000",
+  "prix_propose": null,
+  "lu": false,
+  "created_at": "2026-11-06T06:38:33.452Z"
+ }
+}
+]

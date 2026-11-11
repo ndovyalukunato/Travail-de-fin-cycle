@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react" // hooks React : effets, ré
 // Icônes de la bibliothèque lucide-react
 import {
   Camera, Video, Images, FileText, Image as IconeImage, X, Trash2, ShieldCheck, ShieldX, FolderOpen, ExternalLink,
+  CircleCheck, CircleX, RefreshCw, BrainCircuit,
 } from "lucide-react"
 import { Alert, Button, Chargement, ConfirmAction, EmptyState, StatutBadge } from "./ui" // composants d'interface
-import api, { messageErreur, capitaliser } from "../api" // client HTTP et fonctions utilitaires
+import api, { messageErreur, capitaliser, urlFichier } from "../api" // client HTTP et fonctions utilitaires
 
 // Taille maximale d'une pièce (doit correspondre à TAILLE_MAX_DOCUMENT dans settings.py)
 const TAILLE_MAX_MO = 50
@@ -147,6 +148,130 @@ function Piece({ document: piece, peutSupprimer, onSupprimer, suppression }) {
 // Dossier d'une parcelle : pièces justificatives + décision de l'admin
 // ----------------------------------------------------------------
 // - vendeur (propriétaire) : consulte ses pièces, en ajoute, en retire
+// Rapport de l'authentification par le réseau de neurones (lancée par l'admin)
+// admin : probabilité, valeurs déclarées / registre et influence de chaque indice ; vendeur : résultat seulement
+function RapportVerification({ rapport, admin, onRelancer, relance }) {
+  const [scan, setScan] = useState(null) // adresse locale de l'image du document officiel
+  const [erreurScan, setErreurScan] = useState("")
+  // Admin : affiche le scan du document du registre pour le comparer aux pièces du vendeur
+  const basculerScan = async () => {
+    if (scan) { URL.revokeObjectURL(scan); setScan(null); return }
+    try {
+      setScan(await urlFichier(`/documents-officiels/${rapport.document.id}/scan/`))
+    } catch {
+      setErreurScan("Scan du registre indisponible.")
+    }
+  }
+  const styles = {
+    authentique: { cls: "border-emerald-200 bg-emerald-50", titre: "Dossier authentique", ton: "text-emerald-700", barre: "bg-emerald-500" },
+    douteux: { cls: "border-amber-200 bg-amber-50", titre: "Dossier douteux", ton: "text-amber-700", barre: "bg-amber-500" },
+    falsifie: { cls: "border-red-200 bg-red-50", titre: "Dossier probablement falsifié", ton: "text-red-700", barre: "bg-red-500" },
+    introuvable: { cls: "border-slate-200 bg-slate-50", titre: "Absent du registre officiel", ton: "text-slate-600", barre: "bg-slate-400" },
+    // anciens rapports (vérification par règles, avant le réseau de neurones)
+    conforme: { cls: "border-emerald-200 bg-emerald-50", titre: "Conforme (ancienne vérification)", ton: "text-emerald-700", barre: "bg-emerald-500" },
+    non_conforme: { cls: "border-amber-200 bg-amber-50", titre: "Écarts (ancienne vérification)", ton: "text-amber-700", barre: "bg-amber-500" },
+  }
+  const st = rapport ? styles[rapport.resultat] || styles.introuvable : styles.introuvable
+  const probabilite = rapport?.probabilite
+  return (
+    <section className={`rounded-xl border p-4 ${st.cls}`} aria-label="Authentification par réseau de neurones">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className={`flex flex-wrap items-center gap-2 text-sm font-semibold ${st.ton}`}>
+            <BrainCircuit className="size-4" aria-hidden /> Authentification par réseau de neurones — {rapport ? st.titre : "pas encore lancée"}
+          </p>
+          {probabilite != null && (
+            <div className="mt-2 max-w-sm">
+              <div className="flex justify-between text-xs text-slate-600">
+                <span>Probabilité d'authenticité</span><b>{(probabilite * 100).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %</b>
+              </div>
+              <div className="mt-1 h-2 rounded-full bg-white ring-1 ring-inset ring-slate-200" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(probabilite * 100)} aria-label="Probabilité d'authenticité">
+                <div className={`h-2 rounded-full ${st.barre}`} style={{ width: `${Math.max(2, probabilite * 100)}%` }} />
+              </div>
+              {admin && rapport.seuils && (
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Authentique ≥ {rapport.seuils.authentique * 100} % · douteux entre {rapport.seuils.falsifie * 100} et {rapport.seuils.authentique * 100} % · falsifié &lt; {rapport.seuils.falsifie * 100} %
+                </p>
+              )}
+            </div>
+          )}
+          {rapport && <p className="mt-2 text-xs text-slate-600">{rapport.message}</p>}
+          {!rapport && admin && (
+            <p className="mt-1 text-xs text-slate-600">
+              Lancez l'analyse : le réseau compare le dossier au registre officiel et à la photo du titre authentique, puis donne une probabilité d'authenticité.
+            </p>
+          )}
+          {rapport?.document && admin && <p className="mt-0.5 text-xs text-slate-500">Document du registre : <b>{rapport.document.numero}</b></p>}
+        </div>
+        {admin && (
+          <div className="flex flex-wrap gap-1.5">
+            {rapport?.document?.a_scan && (
+              <Button taille="sm" variante="secondaire" icon={FileText} onClick={basculerScan}>
+                {scan ? "Masquer le document officiel" : "Voir le document officiel"}
+              </Button>
+            )}
+            <Button taille="sm" variante={rapport ? "secondaire" : "primaire"} icon={rapport ? RefreshCw : BrainCircuit} chargement={relance} onClick={onRelancer}>
+              {rapport ? "Relancer l'analyse" : "Lancer l'authentification IA"}
+            </Button>
+          </div>
+        )}
+      </div>
+      {rapport?.controles?.length > 0 && (
+        <div className="mt-3 overflow-x-auto rounded-lg bg-white ring-1 ring-slate-200">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th scope="col" className="px-3 py-2 font-semibold">Contrôle</th>
+                {admin && <th scope="col" className="px-3 py-2 font-semibold">Déclaré par le vendeur</th>}
+                {admin && <th scope="col" className="px-3 py-2 font-semibold">Registre officiel</th>}
+                <th scope="col" className="px-3 py-2 font-semibold">Résultat</th>
+                {admin && probabilite != null && <th scope="col" className="px-3 py-2 font-semibold" title="Gain de probabilité si cet indice était parfait">Poids dans le doute</th>}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rapport.controles.map((c) => (
+                <tr key={c.critere}>
+                  <td className="px-3 py-2 font-medium text-slate-800">{c.critere}{!c.bloquant && <span className="ml-1 text-slate-400">(indicatif)</span>}</td>
+                  {admin && <td className="px-3 py-2 text-slate-600">{c.declare}</td>}
+                  {admin && <td className="px-3 py-2 text-slate-600">{c.attendu}</td>}
+                  <td className="px-3 py-2">
+                    {c.ok ? (
+                      <span className="inline-flex items-center gap-1 font-semibold text-emerald-700"><CircleCheck className="size-3.5" aria-hidden /> Concorde</span>
+                    ) : (
+                      <span className={`inline-flex items-center gap-1 font-semibold ${c.bloquant ? "text-red-700" : "text-amber-700"}`}>
+                        <CircleX className="size-3.5" aria-hidden /> {c.bloquant ? "Écart" : "À compléter"}
+                      </span>
+                    )}
+                  </td>
+                  {admin && probabilite != null && (
+                    <td className="px-3 py-2 text-slate-600">{c.impact >= 1 ? <b className="text-red-700">−{c.impact} pts</b> : "—"}</td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {erreurScan && <p className="mt-2 text-xs text-red-700">{erreurScan}</p>}
+      {scan && (
+        <figure className="mt-3 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
+          <a href={scan} target="_blank" rel="noreferrer" title="Ouvrir en grand">
+            <img src={scan} alt={`Document officiel ${rapport.document.numero}`} className="max-h-[32rem] w-full object-contain" />
+          </a>
+          <figcaption className="border-t border-slate-100 px-3 py-1.5 text-xs text-slate-500">
+            Document authentique du registre ({rapport.document.numero}) — comparez-le aux pièces déposées par le vendeur ci-dessous.
+          </figcaption>
+        </figure>
+      )}
+      {rapport && (
+        <p className="mt-2 text-[11px] text-slate-500">
+          Dernière analyse : {new Date(rapport.date).toLocaleString("fr-FR")}{admin && rapport.lance_par && ` — lancée par ${rapport.lance_par}`}
+        </p>
+      )}
+    </section>
+  )
+}
+
 // - admin : consulte les pièces puis déclare la parcelle vérifiée ou la rejette
 export default function DossierParcelle({ parcelle, onClose, onChange }) {
   const role = localStorage.getItem("role") // rôle de l'utilisateur connecté
@@ -162,6 +287,9 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
   const [rejetOuvert, setRejetOuvert] = useState(false) // champ "motif du rejet" affiché ?
   const [motif, setMotif] = useState("") // motif en cours de saisie
   const [decision, setDecision] = useState(false) // décision de l'admin en cours d'envoi
+  const [rapport, setRapport] = useState(parcelle.rapport_verification) // rapport du réseau de neurones
+  const [verifiePar, setVerifiePar] = useState(parcelle.verifie_par) // "ia" (réseau de neurones) ou "admin"
+  const [relance, setRelance] = useState(false) // analyse par le réseau en cours
 
   // Charge les pièces à l'ouverture
   useEffect(() => {
@@ -187,6 +315,12 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
       fichiers.forEach((f) => donnees.append("documents", f))
       const res = await api.post(`/parcelles/${parcelle.id}/documents/`, donnees)
       setPieces(res.data)
+      // Le dossier a changé : l'ancien rapport du réseau est effacé, on relit la parcelle
+      api.get(`/parcelles/${parcelle.id}/`).then((r) => {
+        setRapport(r.data.rapport_verification)
+        setVerification(r.data.verification)
+        setVerifiePar(r.data.verifie_par)
+      }).catch(() => {})
       // Après un rejet, de nouvelles pièces renvoient le dossier devant l'admin
       if (verification === "rejetee") {
         setVerification("en_attente")
@@ -221,6 +355,7 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
       const res = await api.post(`/parcelles/${parcelle.id}/verifier/`, { decision: choix, motif })
       setVerification(res.data.verification)
       setMotifRejet(res.data.motif_rejet)
+      setVerifiePar(res.data.verifie_par)
       setRejetOuvert(false)
       setMotif("")
       onChange()
@@ -230,9 +365,27 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
     setDecision(false)
   }
 
+  // Admin : lance le réseau de neurones sur ce dossier
+  const relancer = async () => {
+    setErreur("")
+    setRelance(true)
+    try {
+      const res = await api.post(`/parcelles/${parcelle.id}/authentifier/`)
+      setRapport(res.data.rapport_verification)
+      setVerification(res.data.verification)
+      setVerifiePar(res.data.verifie_par)
+      onChange()
+    } catch (err) {
+      setErreur(messageErreur(err, "Erreur lors de l'authentification par l'IA."))
+    }
+    setRelance(false)
+  }
+
   // Le vendeur ne peut plus retirer de pièce une fois la parcelle vérifiée ; il en faut toujours au moins une
-  const peutSupprimer = admin || (verification !== "verifiee" && pieces.length > 1)
-  const peutAjouter = parcelle.statut !== "vendue" || admin
+  // Parcelle inscrite sur la blockchain : dossier figé pour tous, administrateur compris
+  const figee = parcelle.statut === "vendue" || Boolean(parcelle.hash_blockchain)
+  const peutSupprimer = !figee && (admin || (verification !== "verifiee" && pieces.length > 1))
+  const peutAjouter = !figee
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={`Dossier de la parcelle ${parcelle.su}`}>
@@ -250,7 +403,12 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
               {parcelle.titre_foncier && ` · Titre : ${parcelle.titre_foncier}`}
               {admin && ` · Propriétaire : ${parcelle.proprietaire_nom}`}
             </p>
-            <div className="mt-2"><StatutBadge statut={verification} /></div>
+            <div className="mt-2 flex items-center gap-2">
+              <StatutBadge statut={verification} />
+              {verification !== "en_attente" && verifiePar && (
+                <span className="text-xs text-slate-500">{verifiePar === "admin" ? "par l'administrateur" : "par le réseau de neurones"}</span>
+              )}
+            </div>
           </div>
           <button onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Fermer">
             <X className="size-5" />
@@ -266,6 +424,7 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
               {!admin && " Ajoutez les pièces demandées : le dossier sera réexaminé."}
             </Alert>
           )}
+          {(admin || rapport) && <RapportVerification rapport={rapport} admin={admin} onRelancer={relancer} relance={relance} />}
           {verification === "en_attente" && !admin && (
             <Alert type="info">
               En attente de vérification par l'administrateur. La parcelle sera proposée aux acheteurs une fois vérifiée.
@@ -301,8 +460,8 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
           )}
         </div>
 
-        {/* Pied : décision de l'administrateur */}
-        {admin && (
+        {/* Pied : décision de l'administrateur (impossible sur une parcelle inscrite sur la blockchain) */}
+        {admin && !figee && (
           <footer className="border-t border-slate-100 px-5 py-4">
             {rejetOuvert ? (
               <div className="space-y-2">
@@ -317,7 +476,15 @@ export default function DossierParcelle({ parcelle, onClose, onChange }) {
               </div>
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-slate-500">Comparez les pièces aux informations déclarées avant de décider.</p>
+                <p className="text-xs text-slate-500">
+                  {!rapport
+                    ? "Lancez d'abord l'authentification IA, puis confirmez ou corrigez sa décision."
+                    : rapport.resultat === "authentique"
+                      ? "Le réseau de neurones a jugé le dossier authentique ; vous pouvez tout de même contrôler les pièces."
+                      : rapport.resultat === "falsifie"
+                        ? "Le réseau de neurones recommande le rejet : vérifiez les facteurs de doute avant de décider."
+                        : "Décision manuelle : comparez les pièces aux informations déclarées avant de décider."}
+                </p>
                 <div className="flex gap-2">
                   {verification !== "rejetee" && (
                     <Button variante="secondaire" icon={ShieldX} className="text-red-700!" onClick={() => setRejetOuvert(true)}>Rejeter</Button>

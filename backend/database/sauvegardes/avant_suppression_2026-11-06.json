@@ -1,0 +1,392 @@
+[
+{
+  "model": "parcelles.parcelle",
+  "pk": 3,
+  "fields": {
+    "su": "20003",
+    "superficie_ha": 0,
+    "superficie_ares": 1,
+    "superficie_ca": 89,
+    "superficie_pourcent": 0,
+    "zone": "lac-vert",
+    "usage": "commercial",
+    "nature": "contrat_location",
+    "prix_reel": "15000.00",
+    "prix_estime": "23201.30",
+    "statut": "vendue",
+    "titre_foncier": "autre",
+    "hash_blockchain": "0x6206190594b80d99af4daa0ec383de4e3bc902fa24790a32eff2d4be42a1696d",
+    "proprietaire": 2,
+    "verification": "verifiee",
+    "motif_rejet": "",
+    "verifie_par": "",
+    "rapport_verification": null,
+    "latitude": null,
+    "longitude": null,
+    "precision_gps": null,
+    "contour": null,
+    "created_at": "2026-08-17T20:05:32.589Z"
+  }
+},
+{
+  "model": "parcelles.parcelle",
+  "pk": 4,
+  "fields": {
+    "su": "20386",
+    "superficie_ha": 0,
+    "superficie_ares": 5,
+    "superficie_ca": 80,
+    "superficie_pourcent": 0,
+    "zone": "les volcans",
+    "usage": "commercial",
+    "nature": "contrat de location",
+    "prix_reel": "45000.00",
+    "prix_estime": "172197.93",
+    "statut": "vendue",
+    "titre_foncier": "",
+    "hash_blockchain": "0xcec864969e0420ce77489aaa37773199e4417f931efcfab0f77f47fcb49ac563",
+    "proprietaire": 2,
+    "verification": "verifiee",
+    "motif_rejet": "",
+    "verifie_par": "",
+    "rapport_verification": null,
+    "latitude": null,
+    "longitude": null,
+    "precision_gps": null,
+    "contour": null,
+    "created_at": "2026-10-07T08:57:51.181Z"
+  }
+},
+{
+  "model": "parcelles.parcelle",
+  "pk": 7,
+  "fields": {
+    "su": "1234",
+    "superficie_ha": 0,
+    "superficie_ares": 0,
+    "superficie_ca": 12,
+    "superficie_pourcent": 0,
+    "zone": "mikeno",
+    "usage": "residentiel",
+    "nature": "certificat d'enregistrement",
+    "prix_reel": "50000.00",
+    "prix_estime": "82012.18",
+    "statut": "disponible",
+    "titre_foncier": "",
+    "hash_blockchain": null,
+    "proprietaire": 2,
+    "verification": "verifiee",
+    "motif_rejet": "",
+    "verifie_par": "",
+    "rapport_verification": null,
+    "latitude": null,
+    "longitude": null,
+    "precision_gps": null,
+    "contour": null,
+    "created_at": "2026-10-30T06:14:44.837Z"
+  }
+},
+{
+  "model": "parcelles.parcelle",
+  "pk": 8,
+  "fields": {
+    "su": "2340",
+    "superficie_ha": 0,
+    "superficie_ares": 0,
+    "superficie_ca": 10,
+    "superficie_pourcent": 0,
+    "zone": "keshero",
+    "usage": "residentiel",
+    "nature": "certificat d'enregistrement",
+    "prix_reel": "50000.00",
+    "prix_estime": "9035.88",
+    "statut": "vendue",
+    "titre_foncier": "",
+    "hash_blockchain": "0x4a3d2ed1e1c7cb4ae8a9aa6d7c29856a18382032d51cb57bf7607596b97e70f7",
+    "proprietaire": 2,
+    "verification": "verifiee",
+    "motif_rejet": "",
+    "verifie_par": "",
+    "rapport_verification": null,
+    "latitude": null,
+    "longitude": null,
+    "precision_gps": null,
+    "contour": null,
+    "created_at": "2026-10-30T09:44:05.556Z"
+  }
+},
+{
+  "model": "parcelles.documentparcelle",
+  "pk": 4,
+  "fields": {
+    "parcelle": 7,
+    "fichier": "parcelles/7/parcelle1.mp4",
+    "type": "video",
+    "nom": "parcelle1.mp4",
+    "created_at": "2026-10-30T06:14:44.990Z"
+  }
+},
+{
+  "model": "parcelles.documentparcelle",
+  "pk": 5,
+  "fields": {
+    "parcelle": 7,
+    "fichier": "parcelles/7/WhatsApp_Image_2026-10-30_at_07.46.39.jpeg",
+    "type": "photo",
+    "nom": "WhatsApp Image 2026-10-30 at 07.46.39.jpeg",
+    "created_at": "2026-10-30T06:14:45.003Z"
+  }
+},
+{
+  "model": "parcelles.documentparcelle",
+  "pk": 6,
+  "fields": {
+    "parcelle": 8,
+    "fichier": "parcelles/8/parcelle1.mp4",
+    "type": "video",
+    "nom": "parcelle1.mp4",
+    "created_at": "2026-10-30T09:44:05.924Z"
+  }
+},
+{
+  "model": "parcelles.documentparcelle",
+  "pk": 7,
+  "fields": {
+    "parcelle": 8,
+    "fichier": "parcelles/8/WhatsApp_Image_2026-10-30_at_07.46.39.jpeg",
+    "type": "photo",
+    "nom": "WhatsApp Image 2026-10-30 at 07.46.39.jpeg",
+    "created_at": "2026-10-30T09:44:06.478Z"
+  }
+},
+{
+  "model": "transactions.transaction",
+  "pk": 1,
+  "fields": {
+    "parcelle": 3,
+    "acheteur": 3,
+    "vendeur": 2,
+    "montant": "15000.00",
+    "statut": "terminée",
+    "hash_blockchain": "0x6206190594b80d99af4daa0ec383de4e3bc902fa24790a32eff2d4be42a1696d",
+    "created_at": "2026-09-27T16:12:35.808Z"
+  }
+},
+{
+  "model": "transactions.transaction",
+  "pk": 2,
+  "fields": {
+    "parcelle": 4,
+    "acheteur": 3,
+    "vendeur": 2,
+    "montant": "45000.00",
+    "statut": "terminée",
+    "hash_blockchain": "0xcec864969e0420ce77489aaa37773199e4417f931efcfab0f77f47fcb49ac563",
+    "created_at": "2026-10-07T09:08:42.242Z"
+  }
+},
+{
+  "model": "transactions.transaction",
+  "pk": 3,
+  "fields": {
+    "parcelle": 8,
+    "acheteur": 3,
+    "vendeur": 2,
+    "montant": "50000.00",
+    "statut": "terminée",
+    "hash_blockchain": "0x4a3d2ed1e1c7cb4ae8a9aa6d7c29856a18382032d51cb57bf7607596b97e70f7",
+    "created_at": "2026-10-30T09:51:51.648Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 2,
+  "fields": {
+    "parcelle": 3,
+    "superficie": 189.0,
+    "zone": "lac-vert",
+    "prix_predit": "23201.30",
+    "created_at": "2026-09-27T17:22:22.708Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 3,
+  "fields": {
+    "parcelle": 3,
+    "superficie": 189.0,
+    "zone": "lac-vert",
+    "prix_predit": "23201.30",
+    "created_at": "2026-09-27T17:24:06.086Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 4,
+  "fields": {
+    "parcelle": 4,
+    "superficie": 580.0,
+    "zone": "les volcans",
+    "prix_predit": "172197.93",
+    "created_at": "2026-10-07T08:57:52.166Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 5,
+  "fields": {
+    "parcelle": 4,
+    "superficie": 580.0,
+    "zone": "les volcans",
+    "prix_predit": "172197.93",
+    "created_at": "2026-10-07T08:59:08.618Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 6,
+  "fields": {
+    "parcelle": 4,
+    "superficie": 580.0,
+    "zone": "les volcans",
+    "prix_predit": "172197.93",
+    "created_at": "2026-10-07T09:04:15.246Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 7,
+  "fields": {
+    "parcelle": 4,
+    "superficie": 580.0,
+    "zone": "les volcans",
+    "prix_predit": "172197.93",
+    "created_at": "2026-10-07T09:35:41.448Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 8,
+  "fields": {
+    "parcelle": 4,
+    "superficie": 580.0,
+    "zone": "les volcans",
+    "prix_predit": "172197.93",
+    "created_at": "2026-10-07T09:35:41.779Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 10,
+  "fields": {
+    "parcelle": 4,
+    "superficie": 580.0,
+    "zone": "les volcans",
+    "prix_predit": "172197.93",
+    "created_at": "2026-10-09T07:14:35.611Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 12,
+  "fields": {
+    "parcelle": 7,
+    "superficie": 12.0,
+    "zone": "mikeno",
+    "prix_predit": "82012.18",
+    "created_at": "2026-10-30T06:14:50.169Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 13,
+  "fields": {
+    "parcelle": 8,
+    "superficie": 10.0,
+    "zone": "keshero",
+    "prix_predit": "9035.88",
+    "created_at": "2026-10-30T09:44:07.178Z"
+  }
+},
+{
+  "model": "estimations.estimation",
+  "pk": 14,
+  "fields": {
+    "parcelle": 8,
+    "superficie": 10.0,
+    "zone": "keshero",
+    "prix_predit": "9035.88",
+    "created_at": "2026-10-30T09:51:46.363Z"
+  }
+},
+{
+  "model": "messagerie.conversation",
+  "pk": 1,
+  "fields": {
+    "parcelle": 7,
+    "acheteur": 3,
+    "vendeur": 2,
+    "created_at": "2026-10-30T06:17:18.214Z",
+    "updated_at": "2026-10-30T06:19:37.263Z"
+  }
+},
+{
+  "model": "messagerie.conversation",
+  "pk": 2,
+  "fields": {
+    "parcelle": 8,
+    "acheteur": 3,
+    "vendeur": 2,
+    "created_at": "2026-10-30T09:48:56.684Z",
+    "updated_at": "2026-10-30T09:50:29.462Z"
+  }
+},
+{
+  "model": "messagerie.message",
+  "pk": 1,
+  "fields": {
+    "conversation": 1,
+    "auteur": 3,
+    "contenu": "bonjour , est ce que il y a moyen de reduire le prix de cette parcelle",
+    "prix_propose": null,
+    "lu": true,
+    "created_at": "2026-10-30T06:18:04.688Z"
+  }
+},
+{
+  "model": "messagerie.message",
+  "pk": 2,
+  "fields": {
+    "conversation": 1,
+    "auteur": 2,
+    "contenu": "non désolé, c'est un prix ya uzazi",
+    "prix_propose": null,
+    "lu": true,
+    "created_at": "2026-10-30T06:19:37.041Z"
+  }
+},
+{
+  "model": "messagerie.message",
+  "pk": 3,
+  "fields": {
+    "conversation": 2,
+    "auteur": 3,
+    "contenu": "je faiss l offre de 40000",
+    "prix_propose": null,
+    "lu": true,
+    "created_at": "2026-10-30T09:49:57.541Z"
+  }
+},
+{
+  "model": "messagerie.message",
+  "pk": 4,
+  "fields": {
+    "conversation": 2,
+    "auteur": 2,
+    "contenu": "je refus",
+    "prix_propose": null,
+    "lu": false,
+    "created_at": "2026-10-30T09:50:28.961Z"
+  }
+}
+]

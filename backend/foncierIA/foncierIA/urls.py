@@ -8,9 +8,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Vues de chaque application du projet
 from utilisateurs.views import UtilisateurViewSet, connexion, mon_profil
-from parcelles.views import ParcelleViewSet, DocumentParcelleViewSet
-from transactions.views import TransactionViewSet, statut_blockchain
-from estimations.views import EstimationViewSet, estimer, zones, statistiques
+from parcelles.views import ParcelleViewSet, DocumentParcelleViewSet, DocumentOfficielViewSet
+from transactions.views import TransactionViewSet, statut_blockchain, registre_blockchain
+from estimations.views import EstimationViewSet, estimer, zones, statistiques, metriques_ia, apprentissage_ia
 from messagerie.views import ConversationViewSet
 
 # Le routeur crée pour chaque ressource les routes : liste (GET), création (POST),
@@ -20,6 +20,7 @@ router.register(r'utilisateurs', UtilisateurViewSet)  # /api/utilisateurs/
 router.register(r'parcelles', ParcelleViewSet)  # /api/parcelles/
 router.register(r'transactions', TransactionViewSet)  # /api/transactions/
 router.register(r'estimations', EstimationViewSet)  # /api/estimations/
+router.register(r'documents-officiels', DocumentOfficielViewSet)  # /api/documents-officiels/ (registre des titres, admin)
 router.register(r'documents', DocumentParcelleViewSet)  # /api/documents/ (pièces justificatives des parcelles)
 router.register(r'conversations', ConversationViewSet)  # /api/conversations/ (discussions acheteur <-> vendeur)
 
@@ -28,9 +29,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),  # interface d'administration Django
     path('api/', include(router.urls)),  # toutes les routes générées par le routeur
     path('api/estimer/', estimer, name='estimer'),  # estimation IA du prix + détection de fraude
+    path('api/ia/metriques/', metriques_ia, name='metriques_ia'),  # performances des modèles IA
+    path('api/ia/apprentissage/', apprentissage_ia, name='apprentissage_ia'),  # apprentissage continu (admin)
     path('api/zones/', zones, name='zones'),  # lotissements connus par le modèle IA
     path('api/statistiques/', statistiques, name='statistiques'),  # chiffres du tableau de bord
     path('api/blockchain/statut/', statut_blockchain, name='statut_blockchain'),  # Ganache est-il lancé ?
+    path('api/blockchain/registre/', registre_blockchain, name='registre_blockchain'),  # registre (admin, lecture seule)
     path('api/connexion/', connexion, name='connexion'),  # connexion (email + mot de passe -> token JWT)
     path('api/profil/', mon_profil, name='mon_profil'),  # profil de l'utilisateur connecté
     path('api/token/', TokenObtainPairView.as_view()),  # obtention d'un token JWT (vue standard)
