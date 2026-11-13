@@ -1,13 +1,19 @@
 {
-  "date": "2026-11-06",
+  "date": "2026-11-13",
   "donnees": {
-    "nb_dossiers": 10000,
-    "entrainement": 8000,
-    "test": 2000,
-    "origine": "simulées (authentiques / falsifiés)"
+    "source": "Kaggle (compte ndovyalukunatojosue) : DATA_final_mercuriale.xlsx, 510 enregistrements fonciers réels de Goma",
+    "origine": "réelles (aucune donnée simulée)",
+    "fiches_reelles": 510,
+    "fiches_entrainement": 408,
+    "fiches_test": 102,
+    "nb_dossiers": 1068,
+    "entrainement": 856,
+    "test": 212,
+    "conformes": 510,
+    "incoherents": 558
   },
   "architecture_reseau": {
-    "entrees": 15,
+    "entrees": 5,
     "couches_cachees": [
       32,
       16
@@ -15,63 +21,58 @@
     "activation": "relu",
     "sortie": "sigmoïde (probabilité)",
     "optimiseur": "adam",
-    "epoques": 108
+    "epoques": 94
   },
   "caracteristiques": [
     "sim_su",
-    "sim_numero",
-    "numero_absent",
     "sim_titulaire",
     "sim_zone",
     "nature_concorde",
-    "ecart_superficie",
-    "distance_gps",
-    "gps_absent",
-    "ecart_contour",
-    "contour_absent",
-    "document_valide",
-    "nb_pieces",
-    "sim_image",
-    "image_absente"
+    "ecart_superficie"
   ],
   "modeles": {
     "reseau_neurones": {
-      "exactitude": 0.9455,
-      "precision": 0.9449,
-      "rappel": 0.9459,
-      "f1": 0.9454,
+      "exactitude": 1.0,
+      "precision": 1.0,
+      "rappel": 1.0,
+      "f1": 1.0,
       "matrice_confusion": {
-        "vrais_falsifies": 947,
-        "faux_authentiques": 55,
-        "faux_falsifies": 54,
-        "vrais_authentiques": 944
+        "vrais_falsifies": 110,
+        "faux_authentiques": 0,
+        "faux_falsifies": 0,
+        "vrais_authentiques": 102
       },
-      "auc": 0.9821
+      "auc": 1.0
     },
     "regression_logistique": {
-      "exactitude": 0.925,
-      "precision": 0.9054,
-      "rappel": 0.9489,
-      "f1": 0.9266,
+      "exactitude": 1.0,
+      "precision": 1.0,
+      "rappel": 1.0,
+      "f1": 1.0,
       "matrice_confusion": {
-        "vrais_falsifies": 903,
-        "faux_authentiques": 99,
-        "faux_falsifies": 51,
-        "vrais_authentiques": 947
+        "vrais_falsifies": 110,
+        "faux_authentiques": 0,
+        "faux_falsifies": 0,
+        "vrais_authentiques": 102
       },
-      "auc": 0.9807
+      "auc": 1.0
     },
     "regles_fixes": {
-      "exactitude": 0.7335,
-      "precision": 0.9144,
-      "rappel": 0.514,
-      "f1": 0.6581,
+      "exactitude": 1.0,
+      "precision": 1.0,
+      "rappel": 1.0,
+      "f1": 1.0,
       "matrice_confusion": {
-        "vrais_falsifies": 954,
-        "faux_authentiques": 48,
-        "faux_falsifies": 485,
-        "vrais_authentiques": 513
+        "vrais_falsifies": 110,
+        "faux_authentiques": 0,
+        "faux_falsifies": 0,
+        "vrais_authentiques": 102
       }
     }
+  },
+  "apprentissage_continu": {
+    "dossiers_reels": 0,
+    "authentiques": 0,
+    "rejetes": 0
   }
 }

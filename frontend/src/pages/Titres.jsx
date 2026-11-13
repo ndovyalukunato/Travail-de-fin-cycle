@@ -155,19 +155,6 @@ export default function Titres() {
       {succes && <Alert type="succes" onClose={() => setSucces("")} className="mb-4">{succes}</Alert>}
       {erreur && <Alert type="erreur" onClose={() => setErreur("")} className="mb-4">{erreur}</Alert>}
 
-      <Alert type="info" className="mb-4">
-        <span className="inline-flex items-start gap-1">
-          <Bot className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>
-            Ce registre sert de référence au <b>réseau de neurones d'authentification</b>. Depuis le dossier d'une
-            parcelle (ou la page Parcelles pour tous les dossiers en attente), vous lancez l'analyse : le réseau compare
-            le dossier du vendeur à ce registre (SU, numéro du titre, titulaire, lotissement, nature, superficie, position,
-            photo du titre / scan) et donne une probabilité d'authenticité. Joignez un <b>scan image</b> du document
-            authentique pour permettre la comparaison visuelle. Modifier un document rend les analyses de ce SU périmées.
-          </span>
-        </span>
-      </Alert>
-
       {form && (
         <Card titre={form.id ? `Modifier le document ${form.numero}` : "Ajouter un document au registre"} icon={form.id ? PencilLine : Plus} className="mb-6"
           actions={<button onClick={() => setForm(null)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Fermer"><X className="size-5" /></button>}>

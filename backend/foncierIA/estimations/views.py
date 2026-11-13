@@ -55,31 +55,6 @@ def metriques_ia(request):
     return Response(lire_metriques() or {'modeles': {}})
 
 
-# GET  /api/ia/apprentissage/ : état de l'apprentissage continu (admin)
-# POST /api/ia/apprentissage/ : réentraînement immédiat, en arrière-plan (admin)
-@api_view(['GET', 'POST'])
-def apprentissage_ia(request):
-    from rest_framework.exceptions import PermissionDenied
-    from django.conf import settings
-    from ia import apprentissage_continu as ac
-    if request.user.role != 'admin':
-        raise PermissionDenied("Réservé à l'administrateur.")
-    if request.method == 'POST':
-        lance = ac.lancer_en_arriere_plan("demande de l'administrateur", force=True)
-        return Response({'lance': lance, 'message': "Réentraînement lancé en arrière-plan." if lance
-                         else "Un réentraînement est déjà en cours."}, status=202 if lance else 409)
-    journal = ac.lire_journal()
-    return Response({
-        'automatique': getattr(settings, 'APPRENTISSAGE_AUTOMATIQUE', False),
-        'seuil': getattr(settings, 'APPRENTISSAGE_SEUIL', 5),
-        'en_cours': ac.en_cours(),
-        'donnees_reelles': ac.compter_donnees_reelles(),
-        'nouvelles_donnees': ac.nouvelles_donnees(),
-        'dernier': journal[-1] if journal else None,
-        'journal': journal[-10:][::-1],
-    })
-
-
 # POST /api/estimer/ : estimation du prix et détection de fraude
 @api_view(['POST'])
 def estimer(request):

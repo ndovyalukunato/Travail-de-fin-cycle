@@ -49,12 +49,8 @@ class ApprentissageContinuTests(TestCase):
         self.assertTrue(any((self.dossier / 'historique').iterdir()))  # anciens modèles archivés
         self.assertEqual(ac.nouvelles_donnees(self.dossier), {'ventes': 0, 'dossiers': 0})
 
-    def test_etat_reserve_a_l_admin(self):
-        c = APIClient()
-        c.force_authenticate(user=self.admin)
-        r = c.get('/api/ia/apprentissage/')
-        self.assertEqual(r.status_code, 200)
-        self.assertIn('nouvelles_donnees', r.data)
-        autre = APIClient()
-        autre.force_authenticate(user=Utilisateur.objects.get(email='v@t.cd'))
-        self.assertEqual(autre.get('/api/ia/apprentissage/').status_code, 403)
+    def test_apprentissage_invisible_depuis_l_api(self):
+        # L'apprentissage continu tourne seul en arrière-plan : aucune route ne l'expose, même à l'admin
+        from django.urls import Resolver404, resolve
+        with self.assertRaises(Resolver404):
+            resolve('/api/ia/apprentissage/')

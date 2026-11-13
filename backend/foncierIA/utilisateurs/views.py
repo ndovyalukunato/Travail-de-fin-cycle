@@ -1,5 +1,5 @@
 from rest_framework import viewsets  # ViewSets : regroupent les actions CRUD d'une ressource
-from rest_framework.decorators import api_view, permission_classes  # décorateurs pour les vues-fonctions
+from rest_framework.decorators import action, api_view, permission_classes  # décorateurs pour les vues-fonctions
 from rest_framework.permissions import AllowAny, IsAuthenticated  # permissions standard DRF
 from rest_framework.response import Response  # réponse JSON
 from rest_framework_simplejwt.tokens import RefreshToken  # création des tokens JWT
@@ -19,13 +19,23 @@ class UtilisateurViewSet(viewsets.ModelViewSet):
     serializer_class = UtilisateurSerializer  # serializer utilisé pour le JSON
     permission_classes = [IsAuthenticated, EstAdmin]  # connecté ET administrateur
 
-    # Supprimer le compte effacerait ses transactions (CASCADE), dont celles inscrites sur la blockchain
+    # Suppression : seulement un compte qui n'a encore ajouté aucune parcelle ni participé à aucune vente
+    # (sinon la suppression en cascade effacerait des parcelles et des ventes, dont celles de la blockchain)
     def perform_destroy(self, instance):
         from rest_framework.exceptions import ValidationError
-        from .serializers import a_vente_blockchain
-        if a_vente_blockchain(instance):
-            raise ValidationError({'erreur': "Ce compte a une vente inscrite sur la blockchain : il ne peut pas être supprimé."})
+        from .serializers import raison_non_supprimable
+        if instance.pk == self.request.user.pk:
+            raise ValidationError({'erreur': "Vous ne pouvez pas supprimer votre propre compte."})
+        raison = raison_non_supprimable(instance)
+        if raison:
+            raise ValidationError({'erreur': raison})
         instance.delete()
+
+    # GET /api/utilisateurs/adresse_proposee/ : adresse Ethereum libre proposée pour un nouveau compte
+    @action(detail=False, methods=['get'], url_path='adresse_proposee')
+    def adresse_proposee(self, request):
+        from .adresses import adresse_proposee
+        return Response(adresse_proposee())
 
 
 # GET /api/profil/ : informations de l'utilisateur connecté

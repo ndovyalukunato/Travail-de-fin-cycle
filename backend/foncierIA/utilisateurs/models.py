@@ -16,8 +16,9 @@ class Utilisateur(models.Model):
     email = models.EmailField(unique=True)  # email unique, sert d'identifiant de connexion
     mot_de_passe = models.CharField(max_length=255)  # mot de passe HACHÉ (jamais en clair)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)  # acheteur / vendeur / admin
-    # Adresse du portefeuille Ethereum (Ganache), nécessaire pour enregistrer une vente sur la blockchain
-    adresse_ethereum = models.CharField(max_length=42, blank=True, null=True)
+    # Adresse du portefeuille Ethereum (Ganache), nécessaire pour enregistrer une vente sur la blockchain.
+    # Unique : deux comptes ne peuvent pas partager la même adresse (NULL = pas encore d'adresse).
+    adresse_ethereum = models.CharField(max_length=42, blank=True, null=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)  # date de création, remplie automatiquement
 
     # Attributs attendus par Django REST Framework pour un utilisateur connecté

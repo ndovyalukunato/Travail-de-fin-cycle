@@ -201,7 +201,8 @@ SEUIL_FALSIFIE = 0.40
 import sys as _sys
 APPRENTISSAGE_AUTOMATIQUE = 'test' not in _sys.argv
 APPRENTISSAGE_SEUIL = 5
+APPRENTISSAGE_INTERVALLE = 3600  # vérification automatique toutes les heures (arrière-plan)
 
-# Écart maximal admis entre le prix réel déclaré par le vendeur et le prix estimé par l'IA
-# (moyenne des 3 modèles). Au-delà, le système refuse le prix et propose le prix estimé.
-ECART_PRIX_MAX = 0.10  # 10 %
+# Le vendeur fixe librement son prix. L'IA lui propose un prix estimé (moyenne des 3 modèles) ;
+# au-delà de cet écart, le formulaire lui signale simplement que son prix s'éloigne de l'estimation.
+ECART_PRIX_MAX = 0.10  # 10 % (indicatif, aucun refus)

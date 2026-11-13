@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-13",
+  "donnees": {
+    "source": "Kaggle (compte ndovyalukunatojosue) : DATA_final_mercuriale.xlsx, 510 enregistrements fonciers réels de Goma",
+    "origine": "réelles (aucune donnée simulée)",
+    "fiches_reelles": 510,
+    "fiches_entrainement": 408,
+    "fiches_test": 102,
+    "nb_dossiers": 1068,
+    "entrainement": 856,
+    "test": 212,
+    "conformes": 510,
+    "incoherents": 558
+  },
+  "architecture_reseau": {
+    "entrees": 5,
+    "couches_cachees": [
+      32,
+      16
+    ],
+    "activation": "relu",
+    "sortie": "sigmoïde (probabilité)",
+    "optimiseur": "adam",
+    "epoques": 94
+  },
+  "caracteristiques": [
+    "sim_su",
+    "sim_titulaire",
+    "sim_zone",
+    "nature_concorde",
+    "ecart_superficie"
+  ],
+  "modeles": {
+    "reseau_neurones": {
+      "exactitude": 1.0,
+      "precision": 1.0,
+      "rappel": 1.0,
+      "f1": 1.0,
+      "matrice_confusion": {
+        "vrais_falsifies": 110,
+        "faux_authentiques": 0,
+        "faux_falsifies": 0,
+        "vrais_authentiques": 102
+      },
+      "auc": 1.0
+    },
+    "regression_logistique": {
+      "exactitude": 1.0,
+      "precision": 1.0,
+      "rappel": 1.0,
+      "f1": 1.0,
+      "matrice_confusion": {
+        "vrais_falsifies": 110,
+        "faux_authentiques": 0,
+        "faux_falsifies": 0,
+        "vrais_authentiques": 102
+      },
+      "auc": 1.0
+    },
+    "regles_fixes": {
+      "exactitude": 1.0,
+      "precision": 1.0,
+      "rappel": 1.0,
+      "f1": 1.0,
+      "matrice_confusion": {
+        "vrais_falsifies": 110,
+        "faux_authentiques": 0,
+        "faux_falsifies": 0,
+        "vrais_authentiques": 102
+      }
+    }
+  },
+  "apprentissage_continu": {
+    "dossiers_reels": 0,
+    "authentiques": 0,
+    "rejetes": 0
+  }
+}

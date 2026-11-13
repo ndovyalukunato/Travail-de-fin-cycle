@@ -38,7 +38,7 @@ DOSSIER_IA = Path(__file__).resolve().parent
 FICHIER_DONNEES = DOSSIER_IA.parent.parent / 'database' / 'DATA_final_mercuriale.xlsx'
 
 POIDS_VENTES_REELLES = 3        # une vente réelle compte comme 3 lignes de la mercuriale (donnée récente)
-POIDS_DOSSIERS_REELS = 20       # un dossier réel compte comme 20 dossiers simulés
+POIDS_DOSSIERS_REELS = 5        # un dossier tranché dans l'application compte comme 5 dossiers du jeu Kaggle
 MIN_VENTES_NOUVELLE_ZONE = 3    # un nouveau lotissement est appris après 3 ventes validées
 TOLERANCE_R2 = 0.02             # baisse de R² tolérée pour adopter les nouveaux modèles de prix
 TOLERANCE_F1 = 0.01             # baisse de F1 tolérée pour le réseau d'authentification
@@ -223,13 +223,14 @@ def reentrainer_prix(force, dossier):
 
 # ---------------------------------------------------------------- réseau d'authentification
 def reentrainer_authentification(force, dossier, nb_simules=None):
-    from ia.entrainer_authentification import construire_reseau, generer_dossiers, mesurer, NB_DOSSIERS
+    # nb_simules : conservé pour compatibilité, inutilisé (plus aucune donnée simulée)
+    from ia.entrainer_authentification import construire_reseau, jeux_entrainement_test, mesurer
     Xr, yr = donnees_reelles_authentification()
     if len(Xr) == 0 and not force:
         return {'statut': 'ignore', 'raison': 'aucun dossier tranché'}
 
-    Xs, ys = generer_dossiers(nb_simules or NB_DOSSIERS)
-    Xs_tr, Xs_te, ys_tr, ys_te = train_test_split(Xs, ys, test_size=0.2, random_state=42, stratify=ys)
+    # base : dossiers construits à partir des 510 enregistrements réels du jeu Kaggle
+    _, _, _, (Xs_tr, ys_tr), (Xs_te, ys_te), (Xs, ys) = jeux_entrainement_test()
     if len(Xr) >= 5:
         strat = yr if min(np.bincount(yr, minlength=2)) >= 2 else None
         Xr_tr, Xr_te, yr_tr, yr_te = train_test_split(Xr, yr, test_size=0.2, random_state=42, stratify=strat)
@@ -321,3 +322,31 @@ def declencher_si_necessaire(declencheur):
     if sum(nouv.values()) >= getattr(settings, 'APPRENTISSAGE_SEUIL', 5):
         return lancer_en_arriere_plan(declencheur)
     return False
+
+
+# ---------------------------------------------------------------- surveillance périodique
+_surveillance_lancee = False
+
+
+def demarrer_surveillance():
+    """Thread d'arrière-plan lancé au démarrage du serveur : toutes les
+    APPRENTISSAGE_INTERVALLE secondes, il vérifie s'il y a assez de nouvelles données
+    réelles et réentraîne les modèles si besoin. Rien n'est affiché dans l'interface ;
+    les résultats sont notés dans ia/journal_apprentissage.json."""
+    global _surveillance_lancee
+    if _surveillance_lancee or not getattr(settings, 'APPRENTISSAGE_AUTOMATIQUE', False):
+        return
+    _surveillance_lancee = True
+    intervalle = getattr(settings, 'APPRENTISSAGE_INTERVALLE', 3600)
+
+    def boucle():
+        time.sleep(30)  # laisse le serveur finir de démarrer
+        while True:
+            try:
+                declencher_si_necessaire('vérification périodique')
+            except Exception:  # base indisponible, etc. : on réessaiera au prochain tour
+                pass
+            time.sleep(intervalle)
+
+    threading.Thread(target=boucle, daemon=True, name='apprentissage-continu').start()
+

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'; // hooks React : état local et effets
-import { Users, UserPlus, Wallet, Pencil, Check, X, TriangleAlert, Eye, EyeOff, Lock } from 'lucide-react'; // icônes
+import { Users, UserPlus, Wallet, Pencil, Check, X, TriangleAlert, Eye, EyeOff, Lock, Trash2, RefreshCw } from 'lucide-react'; // icônes
 import Layout from '../components/Layout'; // mise en page commune
 import { Alert, Button, Card, Chargement, EmptyState, Field, PageHeader } from '../components/ui'; // composants d'interface
 import api, { messageErreur } from '../api'; // client HTTP et fonction de message d'erreur
@@ -26,7 +26,8 @@ function Utilisateurs() {
   const [motDePasse, setMotDePasse] = useState('');
   const [voirMotDePasse, setVoirMotDePasse] = useState(false); // afficher le mot de passe en clair ?
   const [role, setRole] = useState('acheteur');
-  const [adresseEth, setAdresseEth] = useState('');
+  const [adresseEth, setAdresseEth] = useState(''); // pré-remplie avec l'adresse proposée, modifiable
+  const [origineAdresse, setOrigineAdresse] = useState(''); // 'ganache' ou 'generee'
   const [edition, setEdition] = useState({}); // { idUtilisateur: adresse en cours de saisie }
 
   // Charge la liste des comptes (au début et après chaque modification)
@@ -36,6 +37,29 @@ function Utilisateurs() {
       .catch(() => setErreur("Impossible de charger la liste des utilisateurs."))
       .finally(() => setChargement(false));
   }, [version]);
+
+  // Adresse Ethereum libre proposée par le backend (compte Ganache non attribué, sinon adresse générée)
+  const proposerAdresse = () =>
+    api.get('/utilisateurs/adresse_proposee/')
+      .then((res) => { setAdresseEth(res.data.adresse); setOrigineAdresse(res.data.origine); })
+      .catch(() => {});
+
+  // Une nouvelle adresse est proposée à l'ouverture de la page et après chaque création de compte
+  useEffect(() => { proposerAdresse(); }, [version]);
+
+  // Suppression d'un compte (possible seulement s'il n'a ni parcelle ni vente)
+  const supprimer = async (u) => {
+    if (!window.confirm(`Supprimer définitivement le compte de ${u.nom} ?`)) return;
+    setErreur('');
+    setSucces('');
+    try {
+      await api.delete(`/utilisateurs/${u.id}/`);
+      setSucces(`Compte de ${u.nom} supprimé.`);
+      setVersion((v) => v + 1); // recharge la liste
+    } catch (err) {
+      setErreur(messageErreur(err, 'Impossible de supprimer ce compte.'));
+    }
+  };
 
   // Création d'un compte
   const handleSubmit = async (e) => {
@@ -54,8 +78,7 @@ function Utilisateurs() {
       setEmail('');
       setMotDePasse('');
       setRole('acheteur');
-      setAdresseEth('');
-      setVersion((v) => v + 1); // recharge la liste
+      setVersion((v) => v + 1); // recharge la liste (et propose une nouvelle adresse)
     } catch (err) {
       setErreur(messageErreur(err, "Erreur lors de la création du compte. Vérifiez les informations."));
     }
@@ -136,15 +159,34 @@ function Utilisateurs() {
                 <option value="admin">Admin</option>
               </select>
             </Field>
-            <Field label="Adresse Ethereum" htmlFor="eth" aide="Nécessaire pour valider une vente sur la blockchain (compte Ganache).">
-              <input
-                id="eth"
-                type="text"
-                value={adresseEth}
-                onChange={(e) => setAdresseEth(e.target.value)}
-                placeholder="0x..."
-                className="champ font-mono"
-              />
+            <Field
+              label="Adresse Ethereum"
+              htmlFor="eth"
+              aide={origineAdresse === 'ganache'
+                ? 'Proposée par défaut : compte Ganache libre. Vous pouvez la modifier ; chaque adresse est unique.'
+                : origineAdresse === 'generee'
+                  ? 'Proposée par défaut : adresse neuve générée (Ganache indisponible). Vous pouvez la modifier ; chaque adresse est unique.'
+                  : 'Nécessaire pour valider une vente sur la blockchain. Chaque adresse est unique.'}
+            >
+              <div className="flex gap-2">
+                <input
+                  id="eth"
+                  type="text"
+                  value={adresseEth}
+                  onChange={(e) => { setAdresseEth(e.target.value); setOrigineAdresse(''); }}
+                  placeholder="0x..."
+                  className="champ font-mono text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={proposerAdresse}
+                  className="shrink-0 rounded-lg border border-slate-200 px-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                  title="Proposer une adresse libre"
+                  aria-label="Proposer une adresse libre"
+                >
+                  <RefreshCw className="size-4" />
+                </button>
+              </div>
             </Field>
             <Button type="submit" icon={UserPlus} chargement={envoi} className="w-full">Créer le compte</Button>
           </form>
@@ -170,6 +212,7 @@ function Utilisateurs() {
                     <th scope="col" className="px-4 py-3 font-semibold">Utilisateur</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Rôle</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Adresse Ethereum</th>
+                    <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 {/* Une ligne par utilisateur */}
@@ -236,6 +279,24 @@ function Utilisateurs() {
                             )}
                             <Pencil className="size-3 opacity-0 transition group-hover:opacity-60" aria-hidden />
                           </button>
+                        )}
+                      </td>
+                      {/* Suppression : seulement pour un compte qui n'a encore ajouté aucune parcelle ni vente */}
+                      <td className="px-4 py-3 text-right">
+                        {u.supprimable && u.role !== 'admin' ? (
+                          <button
+                            onClick={() => supprimer(u)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                            title="Supprimer ce compte (aucune parcelle ni vente)"
+                            aria-label={`Supprimer le compte de ${u.nom}`}
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        ) : (
+                          <span className="inline-block p-1.5 text-slate-200" title={u.role === 'admin'
+                            ? 'Compte administrateur' : 'Ce compte a déjà une parcelle ou une vente : suppression impossible'}>
+                            <Trash2 className="size-4" aria-hidden />
+                          </span>
                         )}
                       </td>
                     </tr>

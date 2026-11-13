@@ -1,0 +1,36 @@
+[
+  {
+    "date": "2026-11-13T06:34:17",
+    "declencheur": "demande de l'administrateur",
+    "ventes": 0,
+    "dossiers": 1,
+    "prix": {
+      "statut": "erreur",
+      "raison": "loop of ufunc does not support argument 0 of type float which has no callable log1p method"
+    },
+    "authentification": {
+      "statut": "adopte",
+      "dossiers_reels": 0,
+      "f1_sans_donnees_reelles": 1.0,
+      "f1_avec_donnees_reelles": 1.0
+    },
+    "duree_s": 6.8
+  },
+  {
+    "date": "2026-11-13T06:35:04",
+    "declencheur": "demande de l'administrateur",
+    "ventes": 0,
+    "dossiers": 1,
+    "prix": {
+      "statut": "erreur",
+      "raison": "loop of ufunc does not support argument 0 of type float which has no callable log1p method"
+    },
+    "authentification": {
+      "statut": "adopte",
+      "dossiers_reels": 0,
+      "f1_sans_donnees_reelles": 1.0,
+      "f1_avec_donnees_reelles": 1.0
+    },
+    "duree_s": 5.1
+  }
+]

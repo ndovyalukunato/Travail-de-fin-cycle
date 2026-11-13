@@ -2,6 +2,17 @@ from rest_framework import serializers  # conversion objets Python <-> JSON
 from .models import Utilisateur  # modèle à convertir
 
 
+def raison_non_supprimable(utilisateur):
+    """Un compte ne peut être supprimé que s'il n'a encore ajouté aucune parcelle ni participé à aucune vente."""
+    from transactions.models import Transaction  # import local : évite une importation circulaire
+    from django.db.models import Q
+    if utilisateur.parcelles.exists():
+        return "Ce compte a déjà ajouté une parcelle : il ne peut pas être supprimé."
+    if Transaction.objects.filter(Q(acheteur=utilisateur) | Q(vendeur=utilisateur)).exists():
+        return "Ce compte a déjà participé à une vente : il ne peut pas être supprimé."
+    return None
+
+
 def a_vente_blockchain(utilisateur):
     """L'utilisateur est acheteur ou vendeur d'une vente enregistrée dans le smart contract."""
     from transactions.models import Transaction  # import local : évite une importation circulaire
@@ -26,6 +37,21 @@ class UtilisateurSerializer(serializers.ModelSerializer):
     def get_adresse_verrouillee(self, obj):
         return a_vente_blockchain(obj)
 
+    # Suppression possible seulement si le compte n'a ni parcelle ni vente (affiché dans la liste)
+    supprimable = serializers.SerializerMethodField()
+
+    def get_supprimable(self, obj):
+        return raison_non_supprimable(obj) is None
+
+    def validate_adresse_ethereum(self, valeur):
+        """Champ vide -> NULL ; sinon l'adresse doit être unique (insensible à la casse)."""
+        from .adresses import adresse_deja_utilisee
+        if not valeur:
+            return None
+        if adresse_deja_utilisee(valeur, sauf_id=self.instance.pk if self.instance else None):
+            raise serializers.ValidationError("Cette adresse Ethereum est déjà attribuée à un autre utilisateur.")
+        return valeur
+
     # Validation globale des données reçues
     def validate(self, data):
         # À la création (pas d'instance existante), le mot de passe est obligatoire
@@ -43,7 +69,8 @@ class UtilisateurSerializer(serializers.ModelSerializer):
     class Meta:
         model = Utilisateur  # modèle concerné
         # Champs inclus dans le JSON
-        fields = ['id', 'nom', 'email', 'mot_de_passe', 'role', 'adresse_ethereum', 'adresse_verrouillee', 'created_at']
+        fields = ['id', 'nom', 'email', 'mot_de_passe', 'role', 'adresse_ethereum', 'adresse_verrouillee', 'supprimable',
+                  'created_at']
         read_only_fields = ['id', 'created_at']  # attribués automatiquement
 
     # Création d'un compte (POST /api/utilisateurs/)

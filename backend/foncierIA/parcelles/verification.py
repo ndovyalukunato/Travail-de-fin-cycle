@@ -3,14 +3,18 @@
 # Lancée UNIQUEMENT par l'administrateur (jamais automatiquement).
 #   1. On retrouve le document du registre officiel (table "documents") qui
 #      correspond au dossier (numéro de titre, sinon SU).
-#   2. On calcule 15 indices de concordance entre le dossier du vendeur et ce
-#      document, dont la ressemblance visuelle entre la photo du titre déposée
-#      et le scan authentique du registre.
-#   3. Le réseau de neurones (ia/authentification.py) donne la probabilité que
+#   2. On calcule les indices de concordance entre le dossier du vendeur et ce
+#      document : les 5 entrées du réseau (SU, titulaire, lotissement, nature,
+#      superficie) et des contrôles complémentaires (statut du document, numéro
+#      du titre, position GPS, contour, photo du titre / scan du registre, pièces).
+#   3. Le réseau de neurones (ia/authentification.py), entraîné sur les 510
+#      enregistrements fonciers réels du jeu Kaggle, donne la probabilité que
 #      le dossier soit authentique :
 #        - >= SEUIL_AUTHENTIQUE  -> "authentique" : parcelle vérifiée (par l'IA)
 #        - <  SEUIL_FALSIFIE     -> "falsifie"    : rejet recommandé à l'admin
 #        - entre les deux        -> "douteux"     : l'admin examine les pièces
+#      Un document en litige / annulé donne toujours "falsifie" ; un contrôle
+#      complémentaire bloquant non satisfait empêche "authentique" ("douteux").
 #      Dans les deux derniers cas, la décision finale reste à l'administrateur.
 # ==========================================================
 import math  # calculs de distance et de surface
@@ -21,7 +25,7 @@ from difflib import SequenceMatcher  # similarité entre deux textes
 
 from django.conf import settings
 
-from ia.authentification import probabilite_authentique, facteurs_de_doute
+from ia.authentification import CARACTERISTIQUES, probabilite_authentique, facteurs_de_doute
 from ia.modele import superficie_en_m2  # superficie déclarée en m²
 from .models import DocumentOfficiel
 
@@ -143,7 +147,8 @@ def trouver_document(parcelle):
 
 # ---------------------------------------------------------------- analyse
 def caracteristiques(parcelle, doc):
-    """Calcule les 15 entrées du réseau + les valeurs lisibles affichées à l'admin."""
+    """Calcule les indices du dossier (les 5 entrées du réseau + les contrôles complémentaires)
+    et les valeurs lisibles affichées à l'admin."""
     declaree = superficie_en_m2(parcelle.superficie_ha, parcelle.superficie_ares,
                                 parcelle.superficie_ca, parcelle.superficie_pourcent)
     inscrite = float(doc.superficie_m2)
@@ -242,10 +247,21 @@ def analyser(parcelle, admin=None):
     controles = controles_lisibles(parcelle, doc, v, lisible, impacts)
     doutes = sorted((c for c in controles if c['impact'] >= 1), key=lambda c: -c['impact'])
 
-    if p >= SEUIL_AUTHENTIQUE and v['document_valide']:
-        resultat, message = 'authentique', "Le réseau de neurones juge le dossier authentique."
-    elif p < SEUIL_FALSIFIE or not v['document_valide']:
+    # contrôles complémentaires (hors entrées du réseau) bloquants et non satisfaits
+    complementaires_ko = [c for c in controles if c['bloquant'] and not c['ok']
+                          and c['indice'] not in CARACTERISTIQUES and c['indice'] != 'document_valide']
+
+    if not v['document_valide'] or p < SEUIL_FALSIFIE:
         resultat, message = 'falsifie', "Le réseau de neurones juge le dossier probablement falsifié : rejet recommandé."
+        if not v['document_valide']:
+            message = "Le document du registre n'est pas en vigueur (litige ou annulé) : rejet recommandé."
+    elif p >= SEUIL_AUTHENTIQUE and not complementaires_ko:
+        resultat, message = 'authentique', "Le réseau de neurones juge le dossier authentique."
+    elif p >= SEUIL_AUTHENTIQUE:
+        resultat = 'douteux'
+        message = ("Le réseau de neurones juge les informations conformes au registre, mais un contrôle "
+                   "complémentaire échoue (" + ", ".join(c['critere'] for c in complementaires_ko) + ") : "
+                   "examinez les pièces avant de décider.")
     else:
         resultat, message = 'douteux', "Le réseau de neurones a un doute : examinez les pièces avant de décider."
     if doutes and resultat != 'authentique':

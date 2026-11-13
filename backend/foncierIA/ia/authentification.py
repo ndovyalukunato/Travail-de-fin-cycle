@@ -1,9 +1,11 @@
 # ==========================================================
 # AUTHENTIFICATION DES DOCUMENTS DE PARCELLE PAR RÉSEAU DE NEURONES
 # Modèle produit par ia/entrainer_authentification.py :
-#   - modele_authentification.pkl      : perceptron multicouche (MLPClassifier 32-16)
+#   - modele_authentification.pkl      : perceptron multicouche (MLPClassifier 5-32-16-1)
 #   - metriques_authentification.json  : performances sur le jeu de test
-# Le réseau reçoit 15 indices calculés en comparant le dossier déposé par le
+# Il est entraîné sur les 510 enregistrements fonciers réels du jeu Kaggle
+# (backend/database/DATA_final_mercuriale.xlsx) : aucune donnée simulée.
+# Le réseau reçoit 5 indices calculés en comparant le dossier déposé par le
 # vendeur au registre officiel (voir parcelles/verification.py) et renvoie la
 # probabilité que le dossier soit AUTHENTIQUE (entre 0 et 1).
 # L'analyse n'est jamais lancée automatiquement : c'est l'administrateur qui
@@ -20,40 +22,26 @@ FICHIER_MODELE = os.path.join(DOSSIER_IA, "modele_authentification.pkl")
 FICHIER_METRIQUES = os.path.join(DOSSIER_IA, "metriques_authentification.json")
 
 # Entrées du réseau (même ordre à l'entraînement et en production).
+# Ce sont les 5 indices que l'on peut calculer sur les 510 enregistrements réels du jeu
+# Kaggle (NOM, SU, LOTISSEMENT, SUPERFICIE, TYPE-DOCUMENTS) : le réseau n'apprend donc
+# que sur des données réelles. Les autres contrôles (statut du document, numéro du titre,
+# position GPS, contour, photo, pièces) sont toujours calculés et affichés à l'admin,
+# et un document en litige ou annulé entraîne toujours le rejet (voir verification.py).
 # Les similarités valent 1 quand tout concorde ; les écarts valent 0 quand tout concorde.
 CARACTERISTIQUES = [
     "sim_su",            # similarité du numéro SU déclaré / inscrit au registre (0 à 1)
-    "sim_numero",        # similarité du numéro du titre (volume, folio...)
-    "numero_absent",     # 1 si le vendeur n'a pas indiqué de numéro de titre
     "sim_titulaire",     # similarité du nom du titulaire et du propriétaire du compte
     "sim_zone",          # similarité du lotissement
     "nature_concorde",   # 1 si la nature du titre correspond (certificat, location...)
     "ecart_superficie",  # écart relatif de superficie (0 = identique, plafonné à 1)
-    "distance_gps",      # distance au point du registre, en km (plafonnée à 1)
-    "gps_absent",        # 1 si la parcelle n'est pas localisée ou le registre sans coordonnées
-    "ecart_contour",     # écart relatif entre l'aire du contour tracé et la superficie
-    "contour_absent",    # 1 si aucun contour n'a été tracé
-    "document_valide",   # 1 si le document du registre est en vigueur (ni litige, ni annulé)
-    "nb_pieces",         # nombre de pièces déposées / 5 (plafonné à 1)
-    "sim_image",         # ressemblance visuelle photo déposée / scan authentique (0 à 1)
-    "image_absente",     # 1 si la comparaison d'images est impossible
 ]
 
 # Valeurs d'un dossier parfaitement conforme : servent à expliquer la décision
 # (de combien la probabilité monterait si cet indice était parfait ?)
-VALEURS_IDEALES = {
-    "sim_su": 1, "sim_numero": 1, "numero_absent": 0, "sim_titulaire": 1, "sim_zone": 1,
-    "nature_concorde": 1, "ecart_superficie": 0, "distance_gps": 0, "gps_absent": 0,
-    "ecart_contour": 0, "contour_absent": 0, "document_valide": 1, "nb_pieces": 0.6,
-    "sim_image": 1, "image_absente": 0,
-}
+VALEURS_IDEALES = {"sim_su": 1, "sim_titulaire": 1, "sim_zone": 1, "nature_concorde": 1, "ecart_superficie": 0}
 
-# Indices liés : une valeur et son indicateur d'absence sont toujours changés ensemble
-GROUPES = [
-    ("sim_su",), ("sim_numero", "numero_absent"), ("sim_titulaire",), ("sim_zone",), ("nature_concorde",),
-    ("ecart_superficie",), ("distance_gps", "gps_absent"), ("ecart_contour", "contour_absent"),
-    ("document_valide",), ("sim_image", "image_absente"),
-]
+# Un groupe = indices changés ensemble lors de l'explication
+GROUPES = [("sim_su",), ("sim_titulaire",), ("sim_zone",), ("nature_concorde",), ("ecart_superficie",)]
 
 _modele = None  # chargé au premier usage (le serveur démarre même si le modèle n'est pas encore entraîné)
 

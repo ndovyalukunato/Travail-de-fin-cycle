@@ -17,7 +17,7 @@ from .serializers import ParcelleSerializer, DocumentParcelleSerializer, Documen
 from .verification import authentifier, invalider_su  # authentification par réseau de neurones (lancée par l'admin)
 from utilisateurs.permissions import EstAdmin  # registre officiel réservé à l'administrateur
 from ia.modele import (  # analyse IA (estimation + détection de fraude + contrôle du prix)
-    analyser_parcelle, controler_prix, superficie_en_m2, infrastructure_depuis_nature,
+    analyser_parcelle, superficie_en_m2, infrastructure_depuis_nature,
 )
 
 # Extensions acceptées pour les pièces justificatives, par type
@@ -55,44 +55,6 @@ def enregistrer_documents(parcelle, fichiers):
         DocumentParcelle.objects.create(
             parcelle=parcelle, fichier=f, type=type_de_fichier(f.name), nom=os.path.basename(f.name)[:255],
         )
-
-
-CHAMPS_PRIX = {'superficie_ha', 'superficie_ares', 'superficie_ca', 'superficie_pourcent', 'zone', 'nature', 'prix_reel'}
-
-
-def exiger_prix_coherent(donnees, parcelle=None):
-    """
-    Règle des 10 % : le prix réel ne peut pas s'éloigner de plus de ECART_PRIX_MAX
-    du prix estimé par l'IA. Sinon : erreur 400 avec le prix proposé par le système
-    (prix_propose, prix_min, prix_max), que le frontend propose au vendeur.
-    'donnees' = champs envoyés ; 'parcelle' = valeurs actuelles (modification).
-    """
-    def valeur(champ, defaut=0):
-        if champ in donnees:
-            return donnees[champ]
-        return getattr(parcelle, champ) if parcelle is not None else defaut
-
-    superficie = superficie_en_m2(valeur('superficie_ha'), valeur('superficie_ares'),
-                                  valeur('superficie_ca'), valeur('superficie_pourcent'))
-    if superficie <= 0:
-        return
-    try:
-        controle = controler_prix(superficie, valeur('zone', ''), infrastructure_depuis_nature(valeur('nature', '')),
-                                  valeur('prix_reel'), settings.ECART_PRIX_MAX)
-    except ValueError:
-        return  # lotissement inconnu du modèle : pas d'estimation, pas de contrôle
-    if not controle['accepte']:
-        sens = "supérieur" if controle['ecart'] > 0 else "inférieur"
-        raise ValidationError({
-            'erreur': f"Le prix déclaré est {sens} de {abs(controle['ecart']):.0f} % au prix estimé par l'IA "
-                      f"({controle['prix_estime']:,.0f} $). L'écart maximal admis est de "
-                      f"{settings.ECART_PRIX_MAX:.0%} : le système vous propose {controle['prix_estime']:,.0f} $ "
-                      f"(fourchette acceptée : {controle['prix_min']:,.0f} $ à {controle['prix_max']:,.0f} $).".replace(',', ' '),
-            'prix_propose': controle['prix_estime'],
-            'prix_min': controle['prix_min'],
-            'prix_max': controle['prix_max'],
-            'ecart': controle['ecart'],
-        })
 
 
 MESSAGE_BLOCKCHAIN = "Cette parcelle est inscrite sur la blockchain : ses données et ses pièces ne peuvent plus être modifiées, y compris par l'administrateur."
@@ -167,8 +129,7 @@ class ParcelleViewSet(viewsets.ModelViewSet):
                           "(photo ou vidéo du titre foncier, PDF...)."
             })
         controler_fichiers(fichiers)
-        # Le prix réel doit rester à moins de 10 % du prix estimé par l'IA
-        exiger_prix_coherent(serializer.validated_data)
+        # Prix libre : le vendeur fixe le prix de son choix ; l'IA calcule seulement un prix estimé indicatif
         # Parcelle et pièces sont enregistrées ensemble (tout ou rien)
         with db_transaction.atomic():
             # Le propriétaire est l'utilisateur connecté (il ne peut pas le choisir) ;
@@ -214,10 +175,6 @@ class ParcelleViewSet(viewsets.ModelViewSet):
                     'erreur': "Une offre acceptée est en attente de validation : "
                               "annulez d'abord la vente depuis la page Transactions."
                 })
-
-        # Nouveau prix ou nouvelles caractéristiques : le prix doit rester à moins de 10 % de l'estimation
-        if CHAMPS_PRIX & set(donnees) and parcelle.statut != 'vendue':
-            exiger_prix_coherent(donnees, parcelle)
 
         # Si le vendeur change l'identité d'une parcelle déjà contrôlée, elle doit être revérifiée
         champs_identite = {'su', 'superficie_ha', 'superficie_ares', 'superficie_ca', 'superficie_pourcent',

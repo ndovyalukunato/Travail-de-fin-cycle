@@ -24,7 +24,8 @@ const FORMULAIRE_VIDE = {
   zone: "", usage: "residentiel", nature: "", prix_reel: "", titre_foncier: "",
 }
 
-// Écart maximal entre le prix réel et le prix estimé par l'IA (doit correspondre à ECART_PRIX_MAX dans settings.py)
+// Au-delà de cet écart avec le prix estimé par l'IA, on signale au vendeur que son prix s'en éloigne
+// (simple information : le vendeur reste libre de fixer le prix de son choix)
 const ECART_PRIX_MAX = 0.10
 
 // Position vide (parcelle non localisée)
@@ -58,7 +59,6 @@ export default function Parcelles() {
   const [carte, setCarte] = useState(null) // parcelle affichée dans la fenêtre "Localisation"
   const [affichage, setAffichage] = useState("liste") // "liste" (tableau) ou "carte" (vue d'ensemble)
   const [estimationForm, setEstimationForm] = useState(null) // { cle, prix } : prix estimé pour le formulaire d'ajout
-  const [propositions, setPropositions] = useState({}) // { idParcelle: prix proposé par le système } (édition du prix)
   const navigate = useNavigate() // permet de changer de page par le code
 
   // Charge les parcelles (au début et après chaque modification)
@@ -84,9 +84,9 @@ export default function Parcelles() {
     entier(form.superficie_ha) * 10000 + entier(form.superficie_ares) * 100 +
     entier(form.superficie_ca) + entier(form.superficie_pourcent) / 100
 
-  // ----- Règle des 10 % : estimation en direct pendant la saisie -----
-  // L'estimation ne dépend que de la superficie, du lotissement et de la nature du titre ;
-  // le prix saisi est ensuite comparé à la fourchette estimation ± 10 %.
+  // ----- Prix proposé par l'IA : estimation en direct pendant la saisie -----
+  // L'estimation ne dépend que de la superficie, du lotissement et de la nature du titre.
+  // Le vendeur peut reprendre ce prix ou saisir librement le sien.
   const infrastructure = form.nature.toLowerCase().includes("certificat") ? 1 : 0
   const cleEstimation = `${superficieM2}|${form.zone}|${infrastructure}`
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function Parcelles() {
   const estimationActuelle = estimationForm?.cle === cleEstimation ? estimationForm.prix : undefined
   const prixSaisi = parseFloat(form.prix_reel)
   const ecartPrix = estimationActuelle && prixSaisi > 0 ? (prixSaisi - estimationActuelle) / estimationActuelle : null
-  const prixRefuse = ecartPrix !== null && Math.abs(ecartPrix) > ECART_PRIX_MAX
+  const prixEloigne = ecartPrix !== null && Math.abs(ecartPrix) > ECART_PRIX_MAX // information seulement
   const utiliserPrixPropose = () => setForm({ ...form, prix_reel: String(Math.round(estimationActuelle)) })
 
   // Enregistrement d'une nouvelle parcelle
@@ -171,9 +171,6 @@ export default function Parcelles() {
       setVersion((v) => v + 1) // recharge la liste
     } catch (err) {
       setErreur(messageErreur(err, "Erreur lors de la modification de la parcelle."))
-      // Prix trop éloigné de l'estimation : le système propose un prix au vendeur
-      const propose = err.response?.data?.prix_propose
-      if (propose) setPropositions((pr) => ({ ...pr, [p.id]: Math.round(parseFloat(propose)) }))
     }
     setActionEnCours(null)
   }
@@ -383,39 +380,39 @@ export default function Parcelles() {
                     <Coins className="size-4" aria-hidden /> Valeur
                   </legend>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <Field label="Prix réel ($)" htmlFor="prix" requis aide={`Il doit rester à moins de ${ECART_PRIX_MAX * 100} % du prix estimé par l'IA.`}>
+                    <Field label="Prix réel ($)" htmlFor="prix" requis aide="Prix de votre choix : l'IA vous propose un prix estimé, que vous pouvez reprendre ou non.">
                       <input id="prix" type="number" min="0" step="any" name="prix_reel" value={form.prix_reel} onChange={maj} required
-                        aria-invalid={prixRefuse} className={`champ ${prixRefuse ? "border-red-400! ring-2 ring-red-100" : ""}`} />
+                        className="champ" />
                     </Field>
                     {/* Estimation en direct et prix proposé par le système */}
                     <div role="status" className={`rounded-xl border p-3 text-sm ${
-                      prixRefuse ? "border-red-200 bg-red-50" : ecartPrix !== null ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+                      prixEloigne ? "border-amber-200 bg-amber-50" : ecartPrix !== null ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
                       {!(superficieM2 > 0) || !form.zone ? (
                         <p className="text-slate-500">Renseignez la superficie et le lotissement : l'IA estimera le prix.</p>
                       ) : estimationActuelle === undefined ? (
                         <p className="text-slate-500">Estimation en cours...</p>
                       ) : estimationActuelle === null ? (
-                        <p className="text-slate-500">Lotissement inconnu du modèle IA : pas d'estimation, le prix n'est pas contrôlé.</p>
+                        <p className="text-slate-500">Lotissement inconnu du modèle IA : pas de prix proposé.</p>
                       ) : (
                         <>
                           <p className="flex items-center gap-1.5 text-slate-700">
                             <BrainCircuit className="size-4 text-violet-600" aria-hidden />
-                            Prix estimé par l'IA : <b>{formatMontant(estimationActuelle)}</b>
+                            Prix proposé par l'IA : <b>{formatMontant(estimationActuelle)}</b>
                           </p>
                           <p className="mt-0.5 text-xs text-slate-500">
-                            Prix accepté : de {formatMontant(estimationActuelle * (1 - ECART_PRIX_MAX))} à {formatMontant(estimationActuelle * (1 + ECART_PRIX_MAX))}
+                            Vous restez libre de fixer le prix de votre choix.
                           </p>
-                          {prixRefuse ? (
+                          {prixEloigne ? (
                             <div className="mt-2">
-                              <p className="font-medium text-red-700">
-                                Votre prix s'écarte de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} % : il sera refusé.
+                              <p className="font-medium text-amber-700">
+                                Votre prix s'écarte de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} % de l'estimation : il sera tout de même accepté.
                               </p>
-                              <Button type="button" taille="sm" variante="primaire" icon={Check} className="mt-1.5" onClick={utiliserPrixPropose}>
+                              <Button type="button" taille="sm" variante="secondaire" icon={Check} className="mt-1.5" onClick={utiliserPrixPropose}>
                                 Utiliser le prix proposé ({formatMontant(Math.round(estimationActuelle))})
                               </Button>
                             </div>
                           ) : ecartPrix !== null ? (
-                            <p className="mt-1 font-medium text-emerald-700">Prix cohérent (écart de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} %).</p>
+                            <p className="mt-1 font-medium text-emerald-700">Prix proche de l'estimation (écart de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} %).</p>
                           ) : (
                             !form.prix_reel && (
                               <Button type="button" taille="sm" variante="secondaire" icon={Check} className="mt-1.5" onClick={utiliserPrixPropose}>
@@ -460,8 +457,7 @@ export default function Parcelles() {
                 <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
                   {!aPosition(position) && <span className="mr-auto self-center text-xs text-amber-700">Parcelle non localisée (vous pourrez l'ajouter plus tard).</span>}
                   <Button type="button" variante="secondaire" onClick={() => setAfficherFormulaire(false)}>Annuler</Button>
-                  <Button type="submit" icon={Save} chargement={envoi} disabled={prixRefuse}
-                    title={prixRefuse ? "Le prix doit rester à moins de 10 % de l'estimation" : undefined}>Enregistrer la parcelle</Button>
+                  <Button type="submit" icon={Save} chargement={envoi}>Enregistrer la parcelle</Button>
                 </div>
               </form>
             </Card>
@@ -595,13 +591,6 @@ export default function Parcelles() {
                           </button>
                         </div>
                       ) : formatMontant(p.prix_reel)}
-                      {/* Prix refusé (écart > 10 %) : le système propose le prix estimé */}
-                      {p.id in prixEdition && propositions[p.id] && (
-                        <button onClick={() => { setPrixEdition({ ...prixEdition, [p.id]: String(propositions[p.id]) }); setPropositions((pr) => ({ ...pr, [p.id]: undefined })) }}
-                          className="mt-1 block w-full rounded-lg bg-marine-50 px-2 py-1 text-right text-xs font-semibold text-marine-700 ring-1 ring-marine-100 hover:bg-marine-100">
-                          Prix proposé : {formatMontant(propositions[p.id])} — appliquer
-                        </button>
-                      )}
                       {p.analyse_ia?.prix_suspect && (
                         <span className="mt-0.5 flex items-center justify-end gap-1 text-xs font-medium text-red-600" title="Prix jugé anormal par l'Isolation Forest">
                           <TriangleAlert className="size-3.5" aria-hidden /> Prix anormal

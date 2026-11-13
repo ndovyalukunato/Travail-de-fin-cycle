@@ -1,0 +1,201 @@
+﻿photo,su,nom,nom_confirme,volume,folio,contrat,certificat,contrat_texte,su_explicite,retenu
+pdf1/img-001-001.jpg,,,,G1/98,194,,True,False,False,False
+pdf1/img-002-003.jpg,56826,MUSHAGE BARAKA Olivier,0.67,G1/85,049,,True,True,True,True
+pdf1/img-003-005.jpg,27599,MBOMBO WA MBOMBO,0.0,,,,True,True,True,True
+pdf1/img-004-007.jpg,54497,KAVIRA BAKWAMENE Pauline,0.33,,,,False,True,True,True
+pdf1/img-005-009.jpg,54487,FIKIRI BANYENE Georges,1.0,,,,False,True,True,True
+pdf1/img-006-011.jpg,50021,SALAY WA NZAMBI (repr. NSILU NSEKA Elvys),0.33,,,,True,True,True,True
+pdf1/img-007-013.jpg,,,,,,,False,False,False,False
+pdf1/img-008-015.jpg,27597,UWEZO BAGHUMA,1.0,,,,False,False,True,True
+pdf1/img-009-017.jpg,42567,KOMAYOMBI SIMBA Dieudonné,0.33,G1/84,0,,True,False,True,True
+pdf1/img-010-019.jpg,54485,KAKULE VAHEMBI Guillein,0.0,,,,True,False,True,True
+pdf1/img-011-021.jpg,31935,KAMBERE BAKE,1.0,,,,False,True,True,True
+pdf1/img-012-023.jpg,43500,SEBURIRI HABIMANA Gérard,1.0,,,,False,False,True,True
+pdf1/img-013-025.jpg,25112,BIZIMANA BAGIRUBWIRA Augustin,0.33,G1/66,171,,False,False,True,True
+pdf1/img-014-027.jpg,25112,BIZIMANA BAGIRUBWIRA Augustin,0.0,,,,True,True,True,True
+pdf1/img-015-029.jpg,25112,BIZIMANA BAGIRUBWIRA Augustin,0.0,G1/61,199,,False,True,True,True
+pdf1/img-016-031.jpg,25112,BIZIMANA BAGIRUBWIRA Augustin,0.33,,,,False,True,True,True
+pdf1/img-017-033.jpg,,,,G1/64,122,,True,False,False,False
+pdf1/img-018-035.jpg,57578,GASONGO NGBANDA Marcel,1.0,,,,False,True,True,True
+pdf1/img-019-037.jpg,,,,,,,False,False,False,False
+pdf1/img-020-039.jpg,,,,G1/91,121,,True,False,False,False
+pdf1/img-021-041.jpg,,,,,,,True,False,False,False
+pdf1/img-022-043.jpg,,,,G1/91,122,,True,False,False,False
+pdf1/img-023-045.jpg,59063,FAZILI MUHIRE Henry,1.0,,,,False,True,True,True
+pdf1/img-024-047.jpg,58846,HALIWAMUNGU BONANE CALEB,0.33,,,,True,True,True,True
+pdf1/img-025-049.jpg,58845,FAZILI MUHIRE Henri,1.0,,,,False,True,True,True
+pdf1/img-026-051.jpg,10215,KABILA ILUNGA Marie-Claire,1.0,,,,False,False,True,True
+pdf1/img-027-053.jpg,,,,G1/98,194,,True,False,False,False
+pdf1/img-028-055.jpg,,,,G1/85,049,,False,False,False,False
+pdf1/img-029-057.jpg,27599,MBOMBO WA MBOMBO,0.0,,,,True,True,True,True
+pdf1/img-030-059.jpg,54497,KAVIRA BAKWAMENE Pauline,0.67,,,,False,True,True,True
+pdf1/img-031-061.jpg,54487,FIKIRI BANYENE Georges,1.0,,,,False,True,True,True
+pdf1/img-032-063.jpg,50021,SALAY WA NZAMBI (repr. NSILU NSEKA Elvys),0.17,,,,True,True,True,True
+pdf1/img-033-065.jpg,,,,,,,False,False,False,False
+pdf1/img-034-067.jpg,27597,UWEZO BAGHUMA,0.5,,,,False,False,True,True
+pdf1/img-035-069.jpg,,,,G1/82,008,,True,True,False,False
+pdf1/img-036-071.jpg,,,,,,,False,False,False,False
+pdf1/img-037-073.jpg,,,,,,,False,False,False,False
+pdf1/img-038-075.jpg,,,,,,,False,False,False,False
+pdf1/img-039-077.jpg,,,,,,,False,False,False,False
+pdf1/img-040-079.jpg,,,,,,,False,False,False,False
+pdf1/img-041-081.jpg,,,,,,,False,False,False,False
+pdf1/img-042-083.jpg,,,,,,,False,False,False,False
+pdf1/img-043-085.jpg,,,,,,,False,False,False,False
+pdf1/img-044-087.jpg,57511,MBENTABANTU MASHIMANGO Alphonse,0.33,G1/87,171,,True,False,True,True
+pdf1/img-045-089.jpg,,,,,,,False,False,False,False
+pdf1/img-046-091.jpg,,,,,,,False,False,False,False
+pdf1/img-047-093.jpg,,,,,,,False,False,False,False
+pdf1/img-048-095.jpg,,,,,,,False,False,False,False
+pdf1/img-049-097.jpg,,,,,,,True,False,False,False
+pdf1/img-050-099.jpg,,,,,,,False,False,False,False
+pdf2/img-001-001.jpg,,,,,,,False,False,False,False
+pdf2/img-002-003.jpg,,,,,,,True,False,False,False
+pdf2/img-003-005.jpg,,,,,,,False,False,False,False
+pdf2/img-004-007.jpg,,,,,,,False,False,False,False
+pdf2/img-005-009.jpg,,,,,,,False,False,False,False
+pdf2/img-006-011.jpg,,,,,,,False,False,False,False
+pdf2/img-007-013.jpg,,,,,,,False,False,False,False
+pdf2/img-008-015.jpg,,,,,,,False,False,False,False
+pdf2/img-009-017.jpg,,,,,,,False,False,False,False
+pdf2/img-010-019.jpg,,,,,,,False,False,False,False
+pdf2/img-011-021.jpg,,,,,,,False,False,False,False
+pdf2/img-012-023.jpg,,,,,,,False,False,False,False
+pdf2/img-013-025.jpg,,,,,,,False,False,False,False
+pdf2/img-014-027.jpg,,,,,,,False,False,False,False
+pdf2/img-015-029.jpg,,,,,,,False,False,False,False
+pdf2/img-016-031.jpg,,,,,,,False,False,False,False
+pdf2/img-017-033.jpg,,,,,,,False,False,False,False
+pdf2/img-018-035.jpg,,,,,,,False,False,False,False
+pdf2/img-019-037.jpg,,,,,,,False,False,False,False
+pdf2/img-020-039.jpg,,,,,,,False,False,False,False
+pdf2/img-021-041.jpg,,,,,,,False,False,False,False
+pdf2/img-022-043.jpg,,,,,,,False,False,False,False
+pdf2/img-023-045.jpg,,,,,,,False,False,False,False
+pdf2/img-024-047.jpg,,,,,,,False,False,False,False
+pdf2/img-025-049.jpg,,,,,,,False,False,False,False
+pdf2/img-026-051.jpg,,,,,,,False,False,False,False
+pdf2/img-027-053.jpg,,,,,,,False,False,False,False
+pdf2/img-028-055.jpg,,,,,,,False,False,False,False
+pdf2/img-029-057.jpg,48301,MUSHAGALUSA MOMBOZI Pascal,0.67,,,,False,True,True,True
+pdf2/img-030-059.jpg,61165,RAMONYO BOTAINE Jean Pascal,0.0,,,,True,False,True,True
+pdf2/img-031-061.jpg,13684,BALIATI CALADI Georges,0.33,,,,False,False,True,True
+pdf2/img-032-063.jpg,,,,,,,False,False,False,False
+pdf2/img-033-065.jpg,58498,Nom illisible (voir scan original),0.25,,,,False,True,True,True
+pdf2/img-034-067.jpg,37564,Association DINA PEACE/DRC,0.67,G1/105,067,,True,False,True,True
+pdf2/img-035-069.jpg,37564,Association DINA PEACE/DRC,0.67,G1/105,067,,True,False,True,True
+pdf2/img-036-071.jpg,27244,NDAYA MUNTUNGA Cindle,0.0,G1/99,139,,False,False,True,True
+pdf2/img-037-073.jpg,23032,SAFARI KANANE KAHAHI,1.0,,,,False,True,True,True
+pdf2/img-038-075.jpg,23032,SAFARI KANANE KAHAHI,0.67,,,,True,True,True,True
+pdf2/img-039-077.jpg,,,,,,,False,False,False,False
+pdf2/img-040-079.jpg,38503,ZAGABE MUSEMAKWELI Olive,0.67,,,,False,False,True,True
+pdf2/img-041-081.jpg,,,,,,,False,False,False,False
+pdf2/img-042-083.jpg,,,,,,,False,False,False,False
+pdf2/img-043-085.jpg,42705,SADIKI NDAIRA Bahati,0.0,,,,False,True,True,True
+pdf2/img-044-087.jpg,47329,PFUKAMA GAD SEBAZUNGU,0.0,,,,True,True,True,True
+pdf2/img-045-089.jpg,,,,,,,False,False,False,False
+pdf2/img-046-091.jpg,36569,CHIRIBAGULA MURHABAZI Didier,0.67,,,,False,False,True,True
+pdf2/img-047-093.jpg,,,,,,,True,True,False,False
+pdf2/img-048-095.jpg,,,,,,,False,False,False,False
+pdf2/img-049-097.jpg,,,,G1/106,122,,True,True,False,False
+pdf2/img-050-099.jpg,,,,,,,True,False,False,False
+pdf3/img-001-001.jpg,,,,G1/106,120,,True,False,False,False
+pdf3/img-002-003.jpg,55789,BALYAMU SAFARI MUBASHA Vincent,0.25,,,,True,False,True,True
+pdf3/img-003-005.jpg,,,,G1/106,108,,False,False,False,False
+pdf3/img-004-007.jpg,,,,G1/106,139,,True,False,False,False
+pdf3/img-005-009.jpg,12877,Société distribution eau/électricité,0.0,G1/106,141,,True,True,True,True
+pdf3/img-006-011.jpg,,,,G1/97,109,,True,False,False,False
+pdf3/img-007-013.jpg,,,,G1/106,103,,True,False,False,False
+pdf3/img-008-015.jpg,,,,,,,True,False,False,False
+pdf3/img-009-017.jpg,,,,G1/106,137,,True,True,False,False
+pdf3/img-010-019.jpg,,,,G1/67,152,,True,True,False,False
+pdf3/img-011-021.jpg,,,,G1/106,136,,True,False,False,False
+pdf3/img-012-023.jpg,63291,BARATI LULIHOSHI Jackson,0.0,,,,True,False,True,True
+pdf3/img-013-025.jpg,,,,G1/106,102,,True,False,False,False
+pdf3/img-014-027.jpg,59688,"Consorts MUTUZA (indivision, repr. MUTUZA KABALA Bienvenu)",0.71,G1/105,148,,True,True,True,True
+pdf3/img-015-029.jpg,,,,G1/106,118,,True,True,False,False
+pdf3/img-016-031.jpg,,,,,,,True,False,False,False
+pdf3/img-017-033.jpg,,,,G1/106,127,,True,True,False,False
+pdf3/img-018-035.jpg,,,,,,,False,False,False,False
+pdf3/img-019-037.jpg,,,,G1/106,132,,True,True,False,False
+pdf3/img-020-039.jpg,,,,,,,False,False,False,False
+pdf3/img-021-041.jpg,,,,,,,False,False,False,False
+pdf3/img-022-043.jpg,,,,,,,False,False,False,False
+pdf3/img-023-045.jpg,,,,,,,False,False,False,False
+pdf3/img-024-047.jpg,,,,,,,False,False,False,False
+pdf3/img-025-049.jpg,,,,,,,False,False,False,False
+pdf3/img-026-051.jpg,,,,,,,False,False,False,False
+pdf3/img-027-053.jpg,,,,,,,False,False,False,False
+pdf3/img-028-055.jpg,,,,,,,False,False,False,False
+pdf3/img-029-057.jpg,,,,,,,False,False,False,False
+pdf3/img-030-059.jpg,,,,,,,False,False,False,False
+pdf3/img-031-061.jpg,,,,,,,False,False,False,False
+pdf3/img-032-063.jpg,,,,,,,False,False,False,False
+pdf3/img-033-065.jpg,,,,,,,False,False,False,False
+pdf3/img-034-067.jpg,,,,,,,True,True,False,False
+pdf3/img-035-069.jpg,,,,,,,False,False,False,False
+pdf3/img-036-071.jpg,,,,,,,False,True,False,False
+pdf3/img-037-073.jpg,,,,,,,False,False,False,False
+pdf3/img-038-075.jpg,,,,,,,False,False,False,False
+pdf3/img-039-077.jpg,,,,,,,False,False,False,False
+pdf3/img-040-079.jpg,28914,ISHARA CHIFUNGA Jules,0.67,,,,False,True,True,True
+pdf3/img-041-081.jpg,31440,KANYABASHI PATRICK Deo,1.0,,,,False,True,True,True
+pdf3/img-042-083.jpg,,,,,,,False,False,False,False
+pdf3/img-043-085.jpg,,,,,,,False,False,False,False
+pdf3/img-044-087.jpg,29857,SHAMUTETE Justin,1.0,,,,False,False,True,True
+pdf3/img-045-089.jpg,,,,,,,False,False,False,False
+pdf3/img-046-091.jpg,,,,,,,False,True,False,False
+pdf3/img-047-093.jpg,,,,,,,False,False,False,False
+pdf3/img-048-095.jpg,,,,,,,False,False,False,False
+pdf3/img-049-097.jpg,,,,,,,False,False,False,False
+pdf3/img-050-099.jpg,,,,,,,False,False,False,False
+pdf4/img-001-001.jpg,,,,G1/90,180,,True,False,False,False
+pdf4/img-002-003.jpg,,,,,,,False,False,False,False
+pdf4/img-003-005.jpg,,,,,,,False,False,False,False
+pdf4/img-004-007.jpg,,,,,,,False,False,False,False
+pdf4/img-005-009.jpg,,,,,,,False,False,False,False
+pdf4/img-006-011.jpg,,,,,,,False,False,False,False
+pdf4/img-007-013.jpg,,,,,,,False,False,False,False
+pdf4/img-008-015.jpg,,,,,,,False,False,False,False
+pdf4/img-009-017.jpg,,,,,,,False,False,False,False
+pdf4/img-010-019.jpg,,,,,,,False,False,False,False
+pdf4/img-011-021.jpg,,,,,,,False,False,False,False
+pdf4/img-012-023.jpg,,,,,,,False,False,False,False
+pdf4/img-013-025.jpg,,,,,,,False,False,False,False
+pdf4/img-014-027.jpg,,,,,,,False,False,False,False
+pdf4/img-015-029.jpg,,,,,,,False,False,False,False
+pdf4/img-016-031.jpg,,,,,,,False,False,False,False
+pdf4/img-017-033.jpg,,,,,,,False,False,False,False
+pdf4/img-018-035.jpg,,,,,,,False,False,False,False
+pdf4/img-019-037.jpg,,,,,,,False,False,False,False
+pdf4/img-020-039.jpg,,,,,,,False,False,False,False
+pdf4/img-021-041.jpg,,,,,,,False,False,False,False
+pdf4/img-022-043.jpg,,,,,,,False,False,False,False
+pdf4/img-023-045.jpg,,,,,,,False,False,False,False
+pdf4/img-024-047.jpg,,,,,,,False,False,False,False
+pdf4/img-025-049.jpg,,,,,,,False,False,False,False
+pdf4/img-026-051.jpg,,,,,,,False,False,False,False
+pdf4/img-027-053.jpg,,,,,,,False,False,False,False
+pdf4/img-028-055.jpg,,,,,,,False,False,False,False
+pdf4/img-029-057.jpg,,,,,,,False,False,False,False
+pdf4/img-030-059.jpg,,,,,,,False,False,False,False
+pdf4/img-031-061.jpg,,,,,,,False,False,False,False
+pdf4/img-032-063.jpg,,,,,,,False,False,False,False
+pdf4/img-033-065.jpg,,,,,,,False,False,False,False
+pdf4/img-034-067.jpg,,,,,,,False,False,False,False
+pdf4/img-035-069.jpg,,,,,,,False,False,False,False
+pdf4/img-036-071.jpg,,,,,,,False,False,False,False
+pdf4/img-037-073.jpg,,,,,,,False,False,False,False
+pdf4/img-038-075.jpg,,,,,,,False,False,False,False
+pdf4/img-039-077.jpg,,,,,,,False,False,False,False
+pdf4/img-040-079.jpg,,,,,,,False,False,False,False
+pdf4/img-041-081.jpg,,,,,,,False,False,False,False
+pdf4/img-042-083.jpg,,,,,,,False,False,False,False
+pdf4/img-043-085.jpg,,,,,,,False,False,False,False
+pdf4/img-044-087.jpg,,,,,,,False,False,False,False
+pdf4/img-045-089.jpg,,,,,,,False,False,False,False
+pdf4/img-046-091.jpg,,,,,,,False,False,False,False
+pdf4/img-047-093.jpg,,,,,,,False,False,False,False
+pdf4/img-048-095.jpg,,,,,,,False,False,False,False
+pdf4/img-049-097.jpg,,,,,,,False,False,False,False
+pdf4/img-050-099.jpg,,,,,,,False,False,False,False

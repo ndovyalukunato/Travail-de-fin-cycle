@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from utilisateurs.views import UtilisateurViewSet, connexion, mon_profil
 from parcelles.views import ParcelleViewSet, DocumentParcelleViewSet, DocumentOfficielViewSet
 from transactions.views import TransactionViewSet, statut_blockchain, registre_blockchain
-from estimations.views import EstimationViewSet, estimer, zones, statistiques, metriques_ia, apprentissage_ia
+from estimations.views import EstimationViewSet, estimer, zones, statistiques, metriques_ia
 from messagerie.views import ConversationViewSet
 
 # Le routeur crée pour chaque ressource les routes : liste (GET), création (POST),
@@ -30,7 +30,6 @@ urlpatterns = [
     path('api/', include(router.urls)),  # toutes les routes générées par le routeur
     path('api/estimer/', estimer, name='estimer'),  # estimation IA du prix + détection de fraude
     path('api/ia/metriques/', metriques_ia, name='metriques_ia'),  # performances des modèles IA
-    path('api/ia/apprentissage/', apprentissage_ia, name='apprentissage_ia'),  # apprentissage continu (admin)
     path('api/zones/', zones, name='zones'),  # lotissements connus par le modèle IA
     path('api/statistiques/', statistiques, name='statistiques'),  # chiffres du tableau de bord
     path('api/blockchain/statut/', statut_blockchain, name='statut_blockchain'),  # Ganache est-il lancé ?

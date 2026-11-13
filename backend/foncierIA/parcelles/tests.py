@@ -56,15 +56,26 @@ class AuthentificationReseauTests(TestCase):
         c.force_authenticate(user=utilisateur)
         return c
 
-    def deposer(self, vendeur, piece, ares=2, ca=86, pourcent=50, **extra):
+    def deposer(self, vendeur, piece, ares=2, ca=86, pourcent=50, prix=None, **extra):
         superficie = superficie_en_m2(0, ares, ca, pourcent)
-        prix = controler_prix(superficie, 'katindo', 1, 1)['prix_estime']  # prix dans la fourchette des 10 %
+        if prix is None:
+            prix = controler_prix(superficie, 'katindo', 1, 1)['prix_estime']  # prix proposé par le système
         donnees = {'su': 'SU 27.598', 'superficie_ha': 0, 'superficie_ares': ares, 'superficie_ca': ca,
                    'superficie_pourcent': pourcent, 'zone': 'katindo', 'usage': 'residentiel',
                    'nature': "certificat d'enregistrement", 'prix_reel': prix, 'documents': [piece], **extra}
         r = self.client_de(vendeur).post('/api/parcelles/', donnees, format='multipart')
         self.assertEqual(r.status_code, 201, r.content)
         return Parcelle.objects.get(pk=r.data['id'])
+
+    def test_le_vendeur_fixe_librement_son_prix(self):
+        # Prix très éloigné du prix proposé par l'IA : accepté au dépôt comme en modification
+        estime = controler_prix(superficie_en_m2(0, 2, 86, 50), 'katindo', 1, 1)['prix_estime']
+        p = self.deposer(self.vendeur, photo_certificat(), prix=round(estime * 3))
+        self.assertEqual(float(p.prix_reel), round(estime * 3))
+        r = self.client_de(self.vendeur).patch(f'/api/parcelles/{p.id}/', {'prix_reel': round(estime * 0.4)}, format='json')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(float(r.data['prix_reel']), round(estime * 0.4))
+        self.assertIsNotNone(r.data['prix_estime'])  # le prix proposé par l'IA reste calculé
 
     def test_aucune_verification_automatique_au_depot(self):
         p = self.deposer(self.vendeur, photo_certificat(), titre_foncier='Vol. G1/98 Folio 194')
