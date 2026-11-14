@@ -41,8 +41,8 @@ export default function App() {
         <Route path="/registre" element={<Protegee roles={["admin"]}><Registre /></Protegee>} />
         {/* Registre officiel des titres (table "documents") : administrateur uniquement */}
         <Route path="/titres" element={<Protegee roles={["admin"]}><Titres /></Protegee>} />
-        {/* Discussions acheteur <-> vendeur */}
-        <Route path="/messages" element={<Protegee><Messages /></Protegee>} />
+        {/* Discussions acheteur <-> vendeur (privées : l'administrateur n'y a pas accès) */}
+        <Route path="/messages" element={<Protegee roles={["acheteur", "vendeur"]}><Messages /></Protegee>} />
         {/* Toute autre adresse renvoie vers la connexion */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

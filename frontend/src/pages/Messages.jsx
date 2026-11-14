@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react" // hooks React : état local
 import { Link, useSearchParams } from "react-router-dom" // lien interne et paramètres de l'adresse (?c=12)
 // Icônes de la bibliothèque lucide-react
 import {
-  MessagesSquare, Send, ArrowLeft, BadgeDollarSign, LandPlot, Handshake, Eye, CheckCheck, X,
+  MessagesSquare, Send, ArrowLeft, BadgeDollarSign, LandPlot, Handshake, CheckCheck, X,
 } from "lucide-react"
 import Layout from "../components/Layout" // mise en page commune
 // Composants d'interface
@@ -46,8 +46,6 @@ export default function Messages() {
   const chargementMessages = idOuvert !== null && fil.id !== idOuvert // premier chargement en cours
   // Ajoute à l'écran un message qu'on vient d'envoyer
   const ajouterMessage = (m) => setFil((f) => (f.id === m.conversation ? { ...f, liste: [...f.liste, m] } : f))
-  // L'administrateur consulte les discussions sans y participer
-  const lectureSeule = role === "admin"
 
   // Charge la liste des discussions, puis l'actualise régulièrement
   useEffect(() => {
@@ -135,13 +133,11 @@ export default function Messages() {
   }
 
   // Nom de l'interlocuteur selon le rôle
-  const interlocuteur = (c) =>
-    role === "acheteur" ? c.vendeur_nom : role === "vendeur" ? c.acheteur_nom : `${c.acheteur_nom} ↔ ${c.vendeur_nom}`
+  const interlocuteur = (c) => (role === "acheteur" ? c.vendeur_nom : c.acheteur_nom)
 
   const description =
     role === "acheteur" ? "Discutez avec les vendeurs et négociez le prix avant de faire une offre."
-    : role === "vendeur" ? "Répondez aux acheteurs intéressés par vos parcelles et négociez le prix."
-    : "Consultation des discussions entre acheteurs et vendeurs."
+    : "Répondez aux acheteurs intéressés par vos parcelles et négociez le prix."
 
   return (
     <Layout titre="Messages">
@@ -164,8 +160,7 @@ export default function Messages() {
             titre="Aucune discussion"
             texte={
               role === "acheteur" ? "Ouvrez une discussion avec un vendeur depuis la page Parcelles, bouton « Discuter »."
-              : role === "vendeur" ? "Les acheteurs intéressés par vos parcelles vous écriront ici."
-              : "Aucun acheteur n'a encore contacté de vendeur."
+              : "Les acheteurs intéressés par vos parcelles vous écriront ici."
             }
             action={role === "acheteur" && <Link to="/parcelles"><Button icon={LandPlot}>Voir les parcelles</Button></Link>}
           />
@@ -193,7 +188,7 @@ export default function Messages() {
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       <span className="text-[11px] text-slate-400">{formatDate(c.updated_at)}</span>
                       {/* Pastille : nombre de messages non lus */}
-                      {c.non_lus > 0 && !lectureSeule && (
+                      {c.non_lus > 0 && (
                         <span className="rounded-full bg-rdc-rouge px-1.5 py-0.5 text-[11px] font-bold leading-none text-white" aria-label={`${c.non_lus} message(s) non lu(s)`}>
                           {c.non_lus}
                         </span>
@@ -234,7 +229,7 @@ export default function Messages() {
                     <Chargement texte="Chargement des messages..." />
                   ) : messages.length === 0 ? (
                     <p className="py-10 text-center text-sm text-slate-500">
-                      {lectureSeule ? "Aucun message dans cette discussion." : "Aucun message. Écrivez le premier ou proposez un prix."}
+                      Aucun message. Écrivez le premier ou proposez un prix.
                     </p>
                   ) : (
                     messages.map((m) => (
@@ -243,7 +238,6 @@ export default function Messages() {
                         <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm shadow-sm sm:max-w-[70%] ${
                           m.de_moi ? "rounded-br-sm bg-marine-700 text-white" : "rounded-bl-sm border border-slate-200 bg-white text-slate-800"
                         }`}>
-                          {lectureSeule && <p className="mb-0.5 text-xs font-semibold text-marine-700">{m.auteur_nom}</p>}
                           {/* Proposition de prix */}
                           {m.prix_propose !== null && (
                             <div className={`mb-1 rounded-lg px-2.5 py-1.5 ${m.de_moi ? "bg-white/15" : "bg-amber-50 text-amber-900"}`}>
@@ -279,13 +273,8 @@ export default function Messages() {
                   <div ref={finRef} />
                 </div>
 
-                {/* Zone de saisie (absente pour l'administrateur) */}
-                {lectureSeule ? (
-                  <p className="flex items-center justify-center gap-1.5 border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
-                    <Eye className="size-4" aria-hidden /> Consultation seule : l'administrateur ne participe pas aux discussions.
-                  </p>
-                ) : (
-                  <form onSubmit={envoyer} className="space-y-2 border-t border-slate-100 p-3">
+                {/* Zone de saisie */}
+                <form onSubmit={envoyer} className="space-y-2 border-t border-slate-100 p-3">
                     {/* Champ "proposer un prix" (marchandage) */}
                     {prixOuvert && (
                       <div className="flex items-center gap-2">
@@ -318,7 +307,6 @@ export default function Messages() {
                       </Button>
                     </div>
                   </form>
-                )}
               </>
             )}
           </section>

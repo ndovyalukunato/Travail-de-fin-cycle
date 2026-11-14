@@ -175,17 +175,15 @@ def analyser_parcelle(parcelle, prix=None):
 
 def controler_prix(superficie, zone, infrastructure, prix, ecart_max=0.10):
     """
-    Compare le prix réel déclaré au prix estimé (moyenne des 3 modèles).
-    Le prix est accepté s'il reste dans la fourchette estimation ± ecart_max (10 % par défaut).
+    Compare le prix déclaré par le vendeur au prix estimé (moyenne des 3 modèles).
+    Simple suggestion : le vendeur reste libre de son prix, aucun prix n'est refusé.
+    "eloigne" signale seulement un écart supérieur à ecart_max (10 % par défaut).
     Lève ValueError si la zone est inconnue du modèle (aucune estimation possible).
     """
     estime = estimer_prix(superficie, zone, infrastructure)['moyenne']
-    prix_min, prix_max = estime * (1 - ecart_max), estime * (1 + ecart_max)
     ecart = (float(prix) - estime) / estime if estime else 0  # positif = plus cher que l'estimation
     return {
-        'prix_estime': round(estime, 2),
-        'prix_min': round(prix_min, 2),
-        'prix_max': round(prix_max, 2),
+        'prix_estime': round(estime, 2),  # prix suggéré par l'IA
         'ecart': round(ecart * 100, 1),  # en %
-        'accepte': prix_min <= float(prix) <= prix_max,
+        'eloigne': abs(ecart) > ecart_max,  # information seulement
     }

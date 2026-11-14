@@ -33,13 +33,13 @@ export default function Layout({ titre, children }) {
     return () => clearInterval(minuterie) // arrête l'actualisation en quittant la page
   }, [role])
 
-  // Liens du menu ; "roles" limite certains liens à l'administrateur
+  // Liens du menu ; "roles" limite certains liens à certains rôles
   const liens = [
     { to: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ["admin"] },
     { to: "/parcelles", label: role === "vendeur" ? "Mes parcelles" : "Parcelles", icon: LandPlot },
     { to: "/estimation", label: "Estimation IA", icon: BrainCircuit },
     { to: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-    { to: "/messages", label: "Messages", icon: MessagesSquare, pastille: nonLus },
+    { to: "/messages", label: "Messages", icon: MessagesSquare, pastille: nonLus, roles: ["acheteur", "vendeur"] },
     { to: "/historique", label: "Historique", icon: History },
     { to: "/titres", label: "Registre des titres", icon: BookMarked, roles: ["admin"] },
     { to: "/registre", label: "Registre blockchain", icon: Blocks, roles: ["admin"] },

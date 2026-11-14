@@ -380,7 +380,7 @@ export default function Parcelles() {
                     <Coins className="size-4" aria-hidden /> Valeur
                   </legend>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <Field label="Prix réel ($)" htmlFor="prix" requis aide="Prix de votre choix : l'IA vous propose un prix estimé, que vous pouvez reprendre ou non.">
+                    <Field label="Prix réel ($)" htmlFor="prix" requis aide="Prix libre : l'IA vous suggère seulement une estimation, que vous pouvez reprendre ou non.">
                       <input id="prix" type="number" min="0" step="any" name="prix_reel" value={form.prix_reel} onChange={maj} required
                         className="champ" />
                     </Field>
@@ -397,18 +397,18 @@ export default function Parcelles() {
                         <>
                           <p className="flex items-center gap-1.5 text-slate-700">
                             <BrainCircuit className="size-4 text-violet-600" aria-hidden />
-                            Prix proposé par l'IA : <b>{formatMontant(estimationActuelle)}</b>
+                            Estimation suggérée par l'IA : <b>{formatMontant(estimationActuelle)}</b>
                           </p>
                           <p className="mt-0.5 text-xs text-slate-500">
-                            Vous restez libre de fixer le prix de votre choix.
+                            Simple suggestion : vous fixez librement le prix de votre choix.
                           </p>
                           {prixEloigne ? (
                             <div className="mt-2">
                               <p className="font-medium text-amber-700">
-                                Votre prix s'écarte de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} % de l'estimation : il sera tout de même accepté.
+                                Votre prix s'écarte de {ecartPrix > 0 ? "+" : ""}{Math.round(ecartPrix * 100)} % de l'estimation de l'IA. Votre prix sera enregistré tel quel.
                               </p>
                               <Button type="button" taille="sm" variante="secondaire" icon={Check} className="mt-1.5" onClick={utiliserPrixPropose}>
-                                Utiliser le prix proposé ({formatMontant(Math.round(estimationActuelle))})
+                                Reprendre l'estimation de l'IA ({formatMontant(Math.round(estimationActuelle))})
                               </Button>
                             </div>
                           ) : ecartPrix !== null ? (

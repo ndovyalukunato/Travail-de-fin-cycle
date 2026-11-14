@@ -15,19 +15,23 @@ class ConversationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, view
     """
     - acheteur : ouvre une discussion sur une parcelle et voit SES discussions
     - vendeur  : voit les discussions ouvertes sur SES parcelles et y répond
-    - admin    : peut lire toutes les discussions (contrôle), sans y écrire
+    - admin    : n'a pas accès aux discussions (elles restent privées entre acheteur et vendeur)
     """
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
     permission_classes = [permissions.IsAuthenticated]  # il faut être connecté
+
+    # Les discussions sont privées : l'administrateur ne peut ni les lire ni y écrire
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)  # authentification JWT
+        if request.user.role == 'admin':
+            raise PermissionDenied("Les discussions entre acheteurs et vendeurs sont privées.")
 
     # Détermine les discussions visibles par l'utilisateur connecté
     def get_queryset(self):
         user = self.request.user
         # select_related charge parcelle, acheteur et vendeur en une seule requête SQL
         qs = Conversation.objects.select_related('parcelle', 'acheteur', 'vendeur').order_by('-updated_at')
-        if user.role == 'admin':
-            return qs  # l'admin voit tout
         return qs.filter(Q(acheteur=user) | Q(vendeur=user))  # seulement celles où il participe
 
     # POST /api/conversations/ { "parcelle": 12 } : l'acheteur ouvre (ou retrouve) la discussion
@@ -71,9 +75,8 @@ class ConversationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, view
             conversation.save(update_fields=['updated_at'])
             return Response(serializer.data, status=201)
 
-        # Lecture : les messages reçus sont marqués comme lus (pas pour l'admin, simple observateur)
-        if participant:
-            conversation.messages.filter(lu=False).exclude(auteur=user).update(lu=True)
+        # Lecture : les messages reçus sont marqués comme lus
+        conversation.messages.filter(lu=False).exclude(auteur=user).update(lu=True)
         liste = conversation.messages.select_related('auteur').order_by('id')
         return Response(MessageSerializer(liste, many=True, context={'request': request}).data)
 

@@ -128,10 +128,10 @@ class CircuitParcelleTests(TestCase):
         self.assertEqual(vendeur.get('/api/conversations/non_lus/').data['non_lus'], 0)
         self.assertEqual(vendeur.post(url, {'prix_propose': 18000}, format='json').status_code, 201)
 
-        # Un tiers n'y a pas accès ; l'admin lit mais n'écrit pas
+        # Un tiers n'y a pas accès ; l'admin non plus (discussions privées)
         self.assertEqual(self.client_de(self.autre).get(url).status_code, 404)
         admin = self.client_de(self.admin)
-        self.assertEqual(len(admin.get(url).data), 2)
+        self.assertEqual(admin.get(url).status_code, 403)
+        self.assertEqual(admin.get('/api/conversations/').status_code, 403)
         self.assertEqual(admin.post(url, {'contenu': 'x'}, format='json').status_code, 403)
-        # La lecture par l'admin ne marque pas les messages comme lus
         self.assertEqual(acheteur.get('/api/conversations/non_lus/').data['non_lus'], 1)
